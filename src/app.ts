@@ -1,7 +1,6 @@
 import express from "express";
 import userRouter from './routes/User';
-import {getDatabase, MongoDatabase, SQLDatabase, SQLUserManagement} from './db/mongooseClass';
-import {sqlUserModel} from "./models/user";
+import {getDatabase} from './db/mongooseClass';
 
 const db = getDatabase('mongodb');
 
@@ -23,7 +22,6 @@ db.setConnectionVariables('mongodb://localhost:27017', {
     dbName: 'class_committee',
 });
 
-//db.setUserManagement(mongoMgt);
 db.connect();
 
 const yoofi = {

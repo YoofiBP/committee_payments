@@ -91,15 +91,14 @@ export class MongoDatabase extends DB implements ManagesResources {
             this.driver.connection.once("open", () => {
                 console.log("Database connected successfully");
             })
+            if (this.userManagement) {
+                this.userManagement.setConnection(this.driver.connection);
+            } else {
+                console.log('Please set userManagement by calling setUserManagement(managementObject)')
+            }
         } else {
             console.log("Please set driver by calling setDriver()")
         }
-        if (this.userManagement) {
-            this.userManagement.setConnection(this.driver.connection);
-        } else {
-            console.log('Please set userManagement by calling setUserManagement(managementObject)')
-        }
-
     }
 }
 
@@ -151,27 +150,14 @@ export class SQLDatabase extends DB {
         connection.authenticate()
             .then(() => {
                 console.log('Connection has been established successfully.');
+                if (this.userManagement) {
+                    this.userManagement.setConnection(connection);
+                } else {
+                    console.log('Please set userManagement by calling setUserManagement(managementObject)')
+                }
             }).catch((err: any) => {
             console.log(err)
         })
-        if (this.userManagement) {
-            this.userManagement.setConnection(connection);
-        }
-    }
-
-
-
-    addResource(user: {}) {
-        if (this.userManagement) {
-            try {
-                this.userManagement.add(user);
-            } catch (e) {
-                console.log(e)
-            }
-
-        } else {
-            console.log("User Management not set.")
-        }
     }
 }
 
