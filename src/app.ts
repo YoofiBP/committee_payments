@@ -1,6 +1,9 @@
 import express from "express";
 import userRouter from './routes/User';
-import {getDatabase} from './db/mongooseClass';
+import faker from 'faker';
+import {getDatabase} from './db/decoratedMongo';
+
+faker.locale = 'en_GB';
 
 const db = getDatabase('mongodb');
 
@@ -24,15 +27,16 @@ db.setConnectionVariables('mongodb://localhost:27017', {
 
 db.connect();
 
-const yoofi = {
-    name: "Harry Pinero",
-    email: "poet@pinero.com",
-    password: "qwerty1234",
-    phoneNumber: "+233248506381"
+/*const yoofi = {
+    name: faker.name.findName(),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    phoneNumber: `+44${faker.phone.phoneNumber()}`
 }
 
+console.log(yoofi)
 
-//db.addUser(yoofi);
+db.add(yoofi);*/
 
 const app = express();
 

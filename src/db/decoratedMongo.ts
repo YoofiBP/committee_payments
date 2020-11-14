@@ -5,41 +5,17 @@ interface ManagesResources {
     addResource(resourceData: {}): void
 }
 
-interface ResourceManager {
-    setConnection(connection: any): void
-    add(data: {}): void
-}
-
-export abstract class DB implements ManagesResources {
+export abstract class DB {
     protected driver: any
     protected connectionVariables: any
-    protected resourceManager: ResourceManager | null
 
     protected constructor() {
         this.driver = null;
         this.connectionVariables = [];
-        this.resourceManager = null;
     }
 
     protected setDriver(driver: any) {
         this.driver = driver;
-    }
-
-    setResourceManager(resource: ResourceManager) {
-        this.resourceManager = resource;
-    }
-
-    addResource(resourceData: {}) {
-        if (this.resourceManager) {
-            try {
-                this.resourceManager.add(resourceData);
-            } catch (e) {
-                console.log(e)
-            }
-
-        } else {
-            console.log("User Management not set.")
-        }
     }
 
     abstract setConnectionVariables(...args: any): void
@@ -47,24 +23,47 @@ export abstract class DB implements ManagesResources {
     abstract connect(): void
 }
 
+// Abstract Decorator
+abstract class ResourceManager extends DB{
+    //abstract setConnection(connection: any): void
+    abstract add(data: {}): void;
+    abstract delete(modelId:any):void;
+}
 
-class MongoResourceManager implements ResourceManager {
-    protected userModel: mongoose.Model<any>;
-    private connection: any;
+// Concrete Decorator
+class MongoResourceManager extends ResourceManager {
+    protected userModel: mongoose.Model<any> | null;
+    protected database: DB;
 
-    constructor(userModel: mongoose.Model<any>) {
-        this.userModel = userModel
+    constructor(database:DB) {
+        super();
+        this.database = database;
+        this.userModel = mongoUserModel;
     }
 
-    add(userData: {}) {
-        const user: any = new this.userModel(userData);
-        user.save().then(() => {
-            console.log("User Saved")
-        })
+    add(data: {}) {
+        if(this.userModel){
+            const user: any = new this.userModel(data);
+            user.save().then(() => {
+                console.log("User Saved")
+            })
+        }
     }
 
-    setConnection(connection: any) {
-        this.connection = connection
+    delete(modelId:any){
+
+    }
+
+    connect(){
+        this.database.connect()
+    }
+
+    setConnectionVariables(connectionUri: string, connectionOptions: {}) {
+        this.database.setConnectionVariables(connectionUri, connectionOptions)
+    }
+
+    setUserModel(userModel:mongoose.Model<any>){
+        this.userModel = userModel;
     }
 }
 
@@ -72,13 +71,12 @@ class MongoResourceManager implements ResourceManager {
 
 import mongoose from 'mongoose';
 
-export class MongoDatabase extends DB implements ManagesResources {
-    private userManagement: ResourceManager | null;
+export class MongoDatabase extends DB  {
+    private connection: any;
 
     constructor() {
         super();
         this.setDriver(mongoose)
-        this.userManagement = new MongoResourceManager(mongoUserModel);
     }
 
     setConnectionVariables(connectionUri: string, connectionOptions: {}) {
@@ -91,20 +89,24 @@ export class MongoDatabase extends DB implements ManagesResources {
             this.driver.connection.once("open", () => {
                 console.log("Database connected successfully");
             })
-            if (this.userManagement) {
-                this.userManagement.setConnection(this.driver.connection);
-            } else {
-                console.log('Please set userManagement by calling setUserManagement(managementObject)')
-            }
+            this.setConnection(this.driver.connection);
         } else {
             console.log("Please set driver by calling setDriver()")
         }
+    }
+
+    setConnection(connection:any){
+        this.connection = connection;
+    }
+
+    getConnection(){
+        return this.connection;
     }
 }
 
 import {Sequelize} from "sequelize";
 
-export class SQLResourceManager implements ResourceManager {
+/*export class SQLResourceManager implements ResourceManager {
     protected userSchema: any;
     protected userModel: any;
     protected connectionInstance: any
@@ -127,9 +129,10 @@ export class SQLResourceManager implements ResourceManager {
             this.userModel = this.connectionInstance.define('User', this.userSchema)
         }
     }
-}
+}*/
 
 //export const sqlMgt = new SQLUserManagement(sqlUserModel)
+/*
 
 export class SQLDatabase extends DB {
     private userManagement: ResourceManager | null;
@@ -159,15 +162,18 @@ export class SQLDatabase extends DB {
         })
     }
 }
+*/
 
 export const getDatabase = (databaseType: string): any => {
     switch (databaseType) {
         case 'mongodb':
-            return new MongoDatabase();
+            let mongoDatabase:DB = new MongoDatabase();
+            mongoDatabase = new MongoResourceManager(mongoDatabase)
+            return mongoDatabase;
             break;
-        case 'sql':
+        /*case 'sql':
             return new SQLDatabase();
-            break;
+            break;*/
         default:
             return new MongoDatabase();
     }

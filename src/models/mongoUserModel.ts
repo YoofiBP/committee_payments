@@ -100,7 +100,7 @@ const userSchema2 = new Schema({
     timestamps: false
 })
 
-export const User = mongoose.model("User", userSchema)
+export const mongoUserModel = mongoose.model("User", userSchema)
 
 export const sqlUserModel = {
     name: {

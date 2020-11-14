@@ -1,10 +1,17 @@
 import express from "express";
-import {testFunction} from "../controllers/UserController";
+import UserController from "../controllers/UserController";
 
 const userRouter = express.Router();
+const userController = new UserController();
 
 userRouter.route('/')
-    .get(testFunction)
+    .get(userController.index)
+    .post(userController.store)
+
+userRouter.route('/:id')
+    .get(userController.show)
+    .patch(userController.update)
+    .delete(userController.destroy)
 
 
 
