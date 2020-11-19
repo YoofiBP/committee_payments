@@ -1,49 +1,29 @@
 import express from "express";
-import userRouter from './routes/User';
-import faker from 'faker';
-import {getDatabase} from './db/decoratedMongo';
+import userRouter from './routes/UserRouter';
+import bodyParser from "body-parser";
+import {getDatabase} from './db/Database';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-faker.locale = 'en_GB';
+dotenv.config();
 
-const db = getDatabase('mongodb');
+export const db = getDatabase('mongodb');
 
-const sqlConnectionVariables = ['practice','yoofi','Dilweed86!',{host:'localhost', dialect:'mysql'}]
-
-const mongoConnectionVariables = ['mongodb://localhost:27017', {
+db.setConnectionVariables(process.env.MONGO_DB_URL, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: true,
     useUnifiedTopology: true,
-    dbName: 'class_committee',
-}]
-
-db.setConnectionVariables('mongodb://localhost:27017', {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: true,
-    useUnifiedTopology: true,
-    dbName: 'class_committee',
+    dbName: process.env.DB_NAME,
 });
 
 db.connect();
 
-/*const yoofi = {
-    name: faker.name.findName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    phoneNumber: `+44${faker.phone.phoneNumber()}`
-}
-
-console.log(yoofi)
-
-db.add(yoofi);*/
-
 const app = express();
 
-const port = process.env.PORT || 5000;
-
+app.use(cors())
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use('/users', userRouter)
 
-app.listen(port, () => {
-    console.log(`Server running on port: ${port}`)
-})
+export default app;
