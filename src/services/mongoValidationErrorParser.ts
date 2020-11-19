@@ -4,7 +4,7 @@ interface ParsedBody {
     [index:string]: string;
 }
 
-export const userRouterErrorHandler = (err, req, res, next) => {
+export const appErrorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
     err.message = err.message || 'A server error occured'

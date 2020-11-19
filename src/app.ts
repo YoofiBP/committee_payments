@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import {getDatabase} from './db/Database';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import {appErrorHandler} from "./services/mongoValidationErrorParser";
 
 dotenv.config();
 
@@ -25,5 +26,6 @@ app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use('/users', userRouter)
+app.use(appErrorHandler);
 
 export default app;
