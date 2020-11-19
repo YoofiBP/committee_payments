@@ -5,7 +5,7 @@ interface PasswordEncrypter {
 }
 
 class BcryptPasswordEncrypter implements PasswordEncrypter {
-    private saltRounds: number = 10;
+    private saltRounds: number = +process.env.SALT_ROUNDS;
 
     async encrypt(textString: string): Promise<string> {
         const salt = await bcrypt.genSalt(this.saltRounds);

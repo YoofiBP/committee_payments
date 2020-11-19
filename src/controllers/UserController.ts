@@ -1,10 +1,10 @@
-import Controller from "./Controller";
+import ControllerInterface from "./ControllerInterface";
 import express from 'express';
 import {IUserDocument, UserModel} from "../models/UserModel";
 import {db} from "../app";
-import {errorParser} from "../services/mongoValidationErrorParser";
+import {errorParser} from "../services/errorHandling";
 
-class UserController implements Controller {
+class UserController implements ControllerInterface {
 
     index(req: express.Request, res: express.Response) {
         return res.send("Welcome to users")

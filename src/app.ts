@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import {getDatabase} from './db/Database';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import {appErrorHandler} from "./services/mongoValidationErrorParser";
+import {appErrorHandler} from "./services/errorHandling";
 
 dotenv.config();
 

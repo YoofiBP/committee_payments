@@ -13,6 +13,4 @@ userRouter.route('/:id')
     .patch(userController.update)
     .delete(userController.destroy)
 
-
-
 export default userRouter;

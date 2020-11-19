@@ -1,8 +1,10 @@
-import mongoose, {Schema, Document, model, Model} from 'mongoose';
+//TODO: Place in class to set password encrypter
+
+import {Schema, Document, model, Model} from 'mongoose';
 import validator from "validator";
 import { bcryptEncrypter} from "../config/passwordEncryptionConfig";
 import jwt from 'jsonwebtoken';
-import {errorParser} from "../services/mongoValidationErrorParser";
+import {errorParser} from "../services/errorHandling";
 
 export interface IUser {
     name:string;
