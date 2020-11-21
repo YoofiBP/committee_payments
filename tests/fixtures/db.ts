@@ -3,7 +3,7 @@ import {UserModel} from "../../src/models/UserModel";
 
 const userIdOne = new mongoose.Types.ObjectId();
 
-const userOne = {
+export const userOne = {
     _id: userIdOne,
     name: "Yoofi Brown-Pobee",
     email: "joseph@test.com",

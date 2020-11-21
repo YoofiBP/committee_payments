@@ -1,8 +1,7 @@
 import ControllerInterface from "./ControllerInterface";
 import express from 'express';
-import {IUserDocument, UserModel} from "../models/UserModel";
+import {IUserDocument,} from "../models/UserModel";
 import {db} from "../app";
-import {errorParser} from "../services/errorHandling";
 
 class UserController implements ControllerInterface {
 
@@ -10,11 +9,7 @@ class UserController implements ControllerInterface {
         return res.send("Welcome to users")
     }
 
-    /**
-     *
-     */
-
-    async store(req: express.Request, res: express.Response, next): Promise<express.Response> {
+    async store(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
         try {
             const user:IUserDocument = await db.add(req.body)
             const token = await user.generateAuthToken()
@@ -24,8 +19,17 @@ class UserController implements ControllerInterface {
         }
     }
 
-
-
+    //Uses Passport middleware
+    async login(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
+        try {
+            const { email, password} = req.body;
+            const user = await db.getUserModel().getUserCredentials(email, password);
+            const token = await user.generateAuthToken();
+            return res.status(200).send({user, token})
+        } catch (err) {
+            next(err)
+        }
+    }
 
     update(req: express.Request, res: express.Response): express.Response {
         return res.send();

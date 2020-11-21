@@ -1,10 +1,10 @@
-//TODO: Place in class to set password encrypter
-
 import {Schema, Document, model, Model} from 'mongoose';
 import validator from "validator";
 import { bcryptEncrypter} from "../config/passwordEncryptionConfig";
 import jwt from 'jsonwebtoken';
-import {errorParser} from "../services/errorHandling";
+import {AuthError, errorMessageParser} from "../services/errorHandling";
+import {db} from "../app";
+
 
 export interface IUser {
     name:string;
@@ -12,7 +12,6 @@ export interface IUser {
     password: string;
     phoneNumber: string;
     tokens: Array<any>;
-
 }
 
 //instance methods added here
@@ -21,8 +20,8 @@ export interface IUserDocument extends IUser, Document {
 }
 
 //static methods go here
-interface IUserModel extends Model<IUserDocument> {
-
+export interface IUserModel extends Model<IUserDocument> {
+    getUserCredentials(email:string, password: string): IUserDocument;
 }
 
 
@@ -89,10 +88,22 @@ UserSchema.pre('save',  async function (next) {
     next()
 })
 
-//error handling middleware
+UserSchema.statics.getUserCredentials = async function(email:string, password:string){
+    const user = await db.find({email},'+password')
+    if(!user){
+        throw new AuthError("Unable to Login");
+    }
+    const isMatch = await bcryptEncrypter.decrypt(password, user.password);
+    if(!isMatch) {
+        throw new AuthError("Unable to Login")
+    }
+    return user;
+}
+
+//validation handling middleware
 UserSchema.post('save',  async function (err, doc, next ) {
     if(err){
-        next(errorParser(err))
+        next(errorMessageParser(err))
     } else {
         next();
     }
@@ -110,6 +121,7 @@ UserSchema.methods.generateAuthToken = async function() {
     }
     return token;
 }
+
 
 UserSchema.methods.toJSON = function () {
     const user = this.toObject();

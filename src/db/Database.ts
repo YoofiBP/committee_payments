@@ -1,4 +1,4 @@
-import {UserModel} from "../models/UserModel";
+import {IUserModel, UserModel} from "../models/UserModel";
 
 export abstract class DB {
     protected driver: any
@@ -19,15 +19,17 @@ export abstract class DB {
 }
 
 // Abstract Decorator
-abstract class ResourceManager extends DB{
-    //abstract setConnection(connection: any): void
-    abstract add(data: {}): void;
-    abstract delete(modelId:any):void;
+export abstract class ResourceManager extends DB{
+    abstract add(...args:any): any;
+    abstract delete(...args:any):any;
+    abstract update(...args:any):any;
+    abstract find(...args:any):any;
+    abstract getUserModel():any;
 }
 
 // Concrete Decorator
-class MongoResourceManager extends ResourceManager {
-    protected userModel: mongoose.Model<any> | null;
+export class MongoResourceManager extends ResourceManager {
+    protected userModel: IUserModel | null;
     protected database: DB;
 
     constructor(database:DB) {
@@ -47,6 +49,16 @@ class MongoResourceManager extends ResourceManager {
 
     }
 
+    update(modelId: any) {
+
+    }
+
+    find(queryObject: {}, fields:{}|string) {
+        if(this.userModel){
+            return this.userModel.findOne(...arguments)
+        }
+    }
+
     connect(){
         this.database.connect()
     }
@@ -55,8 +67,12 @@ class MongoResourceManager extends ResourceManager {
         this.database.setConnectionVariables(connectionUri, connectionOptions)
     }
 
-    setUserModel(userModel:mongoose.Model<any>){
+    setUserModel(userModel:IUserModel){
         this.userModel = userModel;
+    }
+
+    getUserModel():IUserModel {
+        return this.userModel;
     }
 }
 
@@ -105,8 +121,8 @@ export class MongoDatabase extends DB  {
     }
 }
 
-export const getDatabase = (databaseType: string): any => {
-    let mongoDatabase:DB;
+export const getDatabase = (databaseType: string) => {
+    let mongoDatabase;
     switch (databaseType) {
         case 'mongodb':
             mongoDatabase = MongoDatabase.getInstance();
