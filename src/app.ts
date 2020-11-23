@@ -5,6 +5,7 @@ import {getDatabase, MongoResourceManager} from './db/Database';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import {appErrorHandler} from "./services/errorHandling";
+import passport from "passport";
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ const app = express();
 app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(passport.initialize())
+app.use(passport.initialize())
 
 app.use('/users', userRouter)
 app.use(appErrorHandler);

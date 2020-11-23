@@ -65,7 +65,7 @@ describe("User Action Tests", () => {
             expect(response.status).toEqual(400);
         })
 
-        it("Should return 400 status with error message when email field is missing", async () => {
+        it("Should return 422 status with error message when email field is missing", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 password: faker.internet.password(),
@@ -75,14 +75,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {email: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when password field is missing", async () => {
+        it("Should return 422 status with error message when password field is missing", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: faker.internet.email(),
@@ -92,14 +92,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({email: testUser.email});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {password: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when name field is missing", async () => {
+        it("Should return 422 status with error message when name field is missing", async () => {
             const testUser = {
                 email: faker.internet.email(),
                 phoneNumber: '+233248506381'
@@ -108,14 +108,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({email: testUser.email});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {name: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when email format is invalid", async () => {
+        it("Should return 422 status with error message when email format is invalid", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: "testEmail",
@@ -126,14 +126,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {email: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when phoneNumber format does not have country code", async () => {
+        it("Should return 422 status with error message when phoneNumber format does not have country code", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: faker.internet.email(),
@@ -144,14 +144,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {phoneNumber: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when phoneNumber format is invalid", async () => {
+        it("Should return 422 status with error message when phoneNumber format is invalid", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: faker.internet.email(),
@@ -162,14 +162,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {phoneNumber: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when password is too short", async () => {
+        it("Should return 422 status with error message when password is too short", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: faker.internet.email(),
@@ -180,14 +180,14 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {password: expect.any(String)}})
         })
 
-        it("Should return 400 status with error message when password contains the word 'password'", async () => {
+        it("Should return 422 status with error message when password contains the word 'password'", async () => {
             const testUser = {
                 name: faker.name.findName(),
                 email: faker.internet.email(),
@@ -198,7 +198,7 @@ describe("User Action Tests", () => {
             const response = await supertest(app)
                 .post('/users/')
                 .send(testUser)
-                .expect(400)
+                .expect(422)
 
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();

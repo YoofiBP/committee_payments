@@ -36,7 +36,7 @@ export const errorMessageParser = (errorBody: mongoose.Error | MongoError ):{} =
         Object.keys(errors).forEach(key => {
             parsedBody[key] = errors[key].message
         })
-        statusCode = 400;
+        statusCode = 422;
     } else if ((errorBody as MongoError).code === 11000){
         return {message: "User already exists", statusCode: 400};
     }

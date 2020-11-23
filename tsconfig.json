@@ -10,7 +10,7 @@
     "removeComments": true,
     "moduleResolution": "node",
     "lib": ["es2017", "dom"],
-    "typeRoots": ["node_modules/@types", "src/@types","@types"]
+    "typeRoots": ["@types","node_modules/@types", "src/@types"]
   },
   "exclude": ["node_modules", "out", ".next"]
 }

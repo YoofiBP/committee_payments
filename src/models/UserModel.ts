@@ -63,6 +63,11 @@ const UserSchema:Schema = new Schema({
             message: (props:any) => "Please include country code (e.g. +233 for Ghana +44 for the United Kingdom) to phone number"
         }
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
+    ,
     tokens: [
         {
             token: {
