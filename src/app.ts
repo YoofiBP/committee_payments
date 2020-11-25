@@ -1,20 +1,22 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from "express";
 import userRouter from './routes/UserRouter';
 import bodyParser from "body-parser";
 import {getDatabase, MongoResourceManager} from './db/Database';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import {appErrorHandler} from "./services/errorHandling";
-import passport from "passport";
 
-dotenv.config();
+import {appErrorHandler} from "./services/errorHandling";
+import passport from "passport"
+import {routeConfigs} from "./config/routing";
+
 
 export const db:MongoResourceManager = getDatabase('mongodb');
 
 db.setConnectionVariables(process.env.MONGO_DB_URL, {
     useNewUrlParser: true,
     useCreateIndex: true,
-    useFindAndModify: true,
+    useFindAndModify: false,
     useUnifiedTopology: true,
     dbName: process.env.DB_NAME,
 });
@@ -28,7 +30,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(passport.initialize())
 
-app.use('/users', userRouter)
+app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(appErrorHandler);
 
 export default app;

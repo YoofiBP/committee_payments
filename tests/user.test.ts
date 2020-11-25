@@ -6,14 +6,27 @@ import supertest from "supertest";
 import app from '../src/app';
 import {setupDatabase, userOne} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
+import { sendGridEmailVerification} from "../src/services/accountVerification"
+import {TokenModel} from "../src/models/EmailTokenModel";
+
+jest.mock("../src/services/accountVerification", () => ({
+    ...jest.requireActual("../src/services/accountVerification"),
+    sendGridEmailVerification: {
+        sendVerification: jest.fn()
+    }
+}))
 
 faker.locale = 'en_GB';
 
 describe("User Action Tests", () => {
-    beforeEach(setupDatabase);
+    beforeEach(async () => {
+        await setupDatabase();
+        (sendGridEmailVerification.sendVerification as jest.Mock).mockClear()
+    });
 
     afterEach(async () => {
         await UserModel.deleteMany({});
+        await TokenModel.deleteMany({})
     })
 
     describe("Sign Up route tests",  () => {
@@ -34,7 +47,6 @@ describe("User Action Tests", () => {
         it("Should sign up user successfully", async () => {
             const response = await signUpUser();
 
-
             expect(response.status).toEqual(200);
 
             const user = await UserModel.findOne({email: validTestUser.email});
@@ -45,6 +57,8 @@ describe("User Action Tests", () => {
                 phoneNumber: validTestUser.phoneNumber
             })
         })
+
+
 
         it("User password should not be included in return response", async () => {
             const response = await signUpUser();
@@ -62,7 +76,7 @@ describe("User Action Tests", () => {
         it("Should return 400 status with error message when user email has already been taken", async () => {
             await signUpUser();
             const response = await signUpUser();
-            expect(response.status).toEqual(400);
+            expect(response.status).toEqual(422);
         })
 
         it("Should return 422 status with error message when email field is missing", async () => {
@@ -203,6 +217,41 @@ describe("User Action Tests", () => {
             const user = await UserModel.findOne({name: testUser.name});
             expect(user).toBeFalsy();
             expect(response.body).toMatchObject({message: {password: expect.any(String)}})
+        })
+
+        it("Should send email after user has signed up", async () => {
+            await signUpUser();
+
+            expect(sendGridEmailVerification.sendVerification).toBeCalledWith(expect.objectContaining({
+                name: validTestUser.name,
+                email: validTestUser.email,
+                phoneNumber: validTestUser.phoneNumber
+            }), expect.any(String))
+        })
+
+        it("Should create token user userId after user has signed up", async () => {
+            await signUpUser();
+
+            const user = await UserModel.findOne({email: validTestUser.email})
+            const token = await TokenModel.findOne({userId: user._id});
+            expect(token).toBeTruthy();
+            expect(token).toMatchObject({
+                userId: user._id
+            })
+        })
+
+        it("Should verify user when link is accessed", async () => {
+            await signUpUser();
+            let user = await UserModel.findOne({email: validTestUser.email})
+            expect(user.isVerified).toEqual(false)
+            const token = await TokenModel.findOne({userId: user._id});
+
+            await supertest(app)
+                .get(`/users/confirmation?token=${token.code}`)
+                .expect(200)
+
+            user = await UserModel.findById(user._id)
+            expect(user.isVerified).toEqual(true)
         })
 
     })

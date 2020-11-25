@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import {HookNextFunction} from "mongoose";
+import {IUserDocument} from "../models/UserModel";
 
 interface PasswordEncrypter {
     encrypt(textString:string):string | Promise<string>;
@@ -23,3 +25,17 @@ class BcryptPasswordEncrypter implements PasswordEncrypter {
 }
 
 export const bcryptEncrypter = new BcryptPasswordEncrypter();
+
+export const encryptPassword = (passwordEncrypter: PasswordEncrypter) => {
+    return async function(next: HookNextFunction) {
+        const user = this as IUserDocument;
+        if(user.isModified('password')){
+            try {
+                user.password = await passwordEncrypter.encrypt(user.password)
+            } catch (err) {
+                next(err)
+            }
+        }
+        next()
+    }
+}

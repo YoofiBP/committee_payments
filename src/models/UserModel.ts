@@ -1,10 +1,11 @@
 import {Schema, Document, model, Model} from 'mongoose';
 import validator from "validator";
-import { bcryptEncrypter} from "../config/passwordEncryptionConfig";
+import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
 import jwt from 'jsonwebtoken';
-import {AuthError, errorMessageParser} from "../services/errorHandling";
-import {db} from "../app";
+import { errorMessageParser} from "../services/errorHandling"
+import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
 
+import mongooseUniqueValidator from 'mongoose-unique-validator'
 
 export interface IUser {
     name:string;
@@ -12,6 +13,7 @@ export interface IUser {
     password: string;
     phoneNumber: string;
     tokens: Array<any>;
+    isVerified?: boolean;
 }
 
 //instance methods added here
@@ -21,7 +23,7 @@ export interface IUserDocument extends IUser, Document {
 
 //static methods go here
 export interface IUserModel extends Model<IUserDocument> {
-    getUserCredentials(email:string, password: string): IUserDocument;
+
 }
 
 
@@ -29,7 +31,7 @@ const UserSchema:Schema = new Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     email: {
         type: String,
@@ -81,29 +83,10 @@ const UserSchema:Schema = new Schema({
     timestamps: true
 })
 
-UserSchema.pre('save',  async function (next) {
-    const user = this as IUserDocument;
-    if(user.isModified('password')){
-        try {
-            user.password = await bcryptEncrypter.encrypt(user.password)
-        } catch (err) {
-            next(err)
-        }
-    }
-    next()
-})
+UserSchema.pre('save',  encryptPassword(bcryptEncrypter))
 
-UserSchema.statics.getUserCredentials = async function(email:string, password:string){
-    const user = await db.find({email},'+password')
-    if(!user){
-        throw new AuthError("Unable to Login");
-    }
-    const isMatch = await bcryptEncrypter.decrypt(password, user.password);
-    if(!isMatch) {
-        throw new AuthError("Unable to Login")
-    }
-    return user;
-}
+//if err then dont send email
+UserSchema.pre('save', sendVerification(sendGridEmailVerification))
 
 //validation handling middleware
 UserSchema.post('save',  async function (err, doc, next ) {
@@ -133,5 +116,8 @@ UserSchema.methods.toJSON = function () {
     delete user.password;
     return user;
 }
+
+UserSchema.plugin(mongooseUniqueValidator)
+
 
 export const UserModel: IUserModel = model<IUserDocument,IUserModel>('User', UserSchema)

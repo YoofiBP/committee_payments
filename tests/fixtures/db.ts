@@ -6,12 +6,12 @@ const userIdOne = new mongoose.Types.ObjectId();
 export const userOne = {
     _id: userIdOne,
     name: "Yoofi Brown-Pobee",
-    email: "joseph@test.com",
+    email: "insightnetwork.15@gmail.com",
     phoneNumber: "+233248506381",
     password: "qwerty1234",
     tokens: []
 }
 
-export const setupDatabase = async () => {
-    await new UserModel(userOne).save();
+export const setupDatabase =  () => {
+    return UserModel.init().then(() => UserModel.create(userOne))
 }

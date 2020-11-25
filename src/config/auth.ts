@@ -1,7 +1,7 @@
 import passport from "passport";
 import {Strategy as LocalStrategy} from 'passport-local';
 import {db} from "../app";
-import {bcryptEncrypter} from "./passwordEncryptionConfig";
+import {bcryptEncrypter} from "../services/passwordEncryption";
 
 const LOGIN_FAIL_MESSAGE = 'Unable to Login';
 
