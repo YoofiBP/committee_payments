@@ -3,7 +3,7 @@ dotenv.config();
 import express from "express";
 import userRouter from './routes/UserRouter';
 import bodyParser from "body-parser";
-import {getDatabase, MongoResourceManager} from './db/Database';
+import {DB, mongoDatabase} from './db/Database';
 import cors from 'cors';
 
 import {appErrorHandler} from "./services/errorHandling";
@@ -11,7 +11,7 @@ import passport from "passport"
 import {routeConfigs} from "./config/routing";
 
 
-export const db:MongoResourceManager = getDatabase('mongodb');
+export const db:DB = mongoDatabase;
 
 db.setConnectionVariables(process.env.MONGO_DB_URL, {
     useNewUrlParser: true,

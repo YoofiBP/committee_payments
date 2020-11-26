@@ -18,17 +18,62 @@ export abstract class DB {
     abstract connect(): void
 }
 
+import mongoose from 'mongoose';
+
+export class MongoDatabase extends DB  {
+    private connection: any;
+    private static instance: MongoDatabase | null = null;
+
+    private constructor() {
+        super();
+        this.setDriver(mongoose)
+    }
+
+    static getInstance() {
+        if(this.instance === null){
+            this.instance = new MongoDatabase();
+        }
+        return this.instance;
+    }
+
+    setConnectionVariables(connectionUri: string, connectionOptions: {}) {
+        this.connectionVariables = arguments;
+    }
+
+    connect() {
+        if (this.driver) {
+            this.driver.connect(...this.connectionVariables)
+            this.driver.connection.once("open", () => {
+                console.log("Database connected successfully");
+            })
+            this.setConnection(this.driver.connection);
+        } else {
+            console.log("Please set driver by calling setDriver()")
+        }
+    }
+
+    setConnection(connection:any){
+        this.connection = connection;
+    }
+
+    getConnection(){
+        return this.connection;
+    }
+}
+
+export const mongoDatabase = MongoDatabase.getInstance()
+
 // Abstract Decorator
-export abstract class ResourceManager extends DB{
+/*export abstract class ResourceManager extends DB{
     abstract add(...args:any): any;
     abstract delete(...args:any):any;
     abstract update(...args:any):any;
     abstract find(...args:any):any;
     abstract getUserModel():any;
-}
+}*/
 
 // Concrete Decorator
-export class MongoResourceManager extends ResourceManager {
+/*export class MongoResourceManager extends ResourceManager {
     protected userModel: IUserModel | null;
     protected database: DB;
 
@@ -74,64 +119,5 @@ export class MongoResourceManager extends ResourceManager {
     getUserModel():IUserModel {
         return this.userModel;
     }
-}
+}*/
 
-//export const mongoMgt = new MongoResourceManager(User)
-
-import mongoose from 'mongoose';
-
-export class MongoDatabase extends DB  {
-    private connection: any;
-    private static instance: MongoDatabase | null = null;
-
-    private constructor() {
-        super();
-        this.setDriver(mongoose)
-    }
-
-    static getInstance() {
-        if(this.instance === null){
-            this.instance = new MongoDatabase();
-        }
-        return this.instance;
-    }
-
-    setConnectionVariables(connectionUri: string, connectionOptions: {}) {
-        this.connectionVariables = arguments;
-    }
-
-    connect() {
-        if (this.driver) {
-            this.driver.connect(...this.connectionVariables)
-            this.driver.connection.once("open", () => {
-                console.log("Database connected successfully");
-            })
-            this.setConnection(this.driver.connection);
-        } else {
-            console.log("Please set driver by calling setDriver()")
-        }
-    }
-
-    setConnection(connection:any){
-        this.connection = connection;
-    }
-
-    getConnection(){
-        return this.connection;
-    }
-}
-
-export const getDatabase = (databaseType: string) => {
-    let mongoDatabase;
-    switch (databaseType) {
-        case 'mongodb':
-            mongoDatabase = MongoDatabase.getInstance();
-            mongoDatabase = new MongoResourceManager(mongoDatabase)
-            return mongoDatabase;
-            break;
-        default:
-            mongoDatabase = MongoDatabase.getInstance();
-            mongoDatabase = new MongoResourceManager(mongoDatabase)
-            return mongoDatabase;
-    }
-}

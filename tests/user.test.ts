@@ -8,6 +8,7 @@ import {setupDatabase, userOne} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
 import { sendGridEmailVerification} from "../src/services/accountVerification"
 import {TokenModel} from "../src/models/EmailTokenModel";
+import {routeConfigs} from "../src/config/routing";
 
 jest.mock("../src/services/accountVerification", () => ({
     ...jest.requireActual("../src/services/accountVerification"),
@@ -19,6 +20,7 @@ jest.mock("../src/services/accountVerification", () => ({
 faker.locale = 'en_GB';
 
 describe("User Action Tests", () => {
+    const signupRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.signup}`
     beforeEach(async () => {
         await setupDatabase();
         (sendGridEmailVerification.sendVerification as jest.Mock).mockClear()
@@ -40,7 +42,7 @@ describe("User Action Tests", () => {
 
         const signUpUser = async () => {
             return supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(validTestUser);
         }
 
@@ -87,7 +89,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -104,7 +106,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -120,7 +122,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -138,7 +140,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -156,7 +158,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -174,7 +176,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -192,7 +194,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -210,7 +212,7 @@ describe("User Action Tests", () => {
             }
 
             const response = await supertest(app)
-                .post('/users/')
+                .post(signupRoute)
                 .send(testUser)
                 .expect(422)
 
@@ -258,9 +260,11 @@ describe("User Action Tests", () => {
 
     describe("Login Route tests", () => {
 
+        const loginRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.login}`
+
         const loginUser = async () => {
             return supertest(app)
-                .post('/users/login')
+                .post(loginRoute)
                 .send({
                     email: userOne.email,
                     password: userOne.password
@@ -292,7 +296,7 @@ describe("User Action Tests", () => {
 
         it("Should return 401 response status when login fails", async () => {
             const response = await supertest(app)
-                .post('/users/login')
+                .post(loginRoute)
                 .send({
                     email: userOne.email,
                     password: "wrong password"

@@ -1,4 +1,3 @@
-//TODO: create email token
 import {Schema, Document, Model, model} from 'mongoose'
 import cryptoRandomString from "crypto-random-string";
 

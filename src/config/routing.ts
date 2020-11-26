@@ -6,6 +6,7 @@ export const routeConfigs = {
     users: {
         baseUrl: '/users',
         userConfirmation: '/confirmation',
-        login: '/login'
+        login: '/login',
+        signup: '/signup'
     }
 }

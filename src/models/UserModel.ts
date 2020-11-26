@@ -4,7 +4,7 @@ import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
 import jwt from 'jsonwebtoken';
 import { errorMessageParser} from "../services/errorHandling"
 import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
-
+import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
 
 export interface IUser {
@@ -17,13 +17,13 @@ export interface IUser {
 }
 
 //instance methods added here
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends IUser, Document, mongoose_delete.SoftDeleteDocument {
     generateAuthToken: () => string;
 }
 
 //static methods go here
-export interface IUserModel extends Model<IUserDocument> {
-
+export interface IUserModel extends Model<IUserDocument>, mongoose_delete.SoftDeleteModel<IUserDocument> {
+    printTree();
 }
 
 
@@ -67,7 +67,13 @@ const UserSchema:Schema = new Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false
+        default: false,
+        protected: true
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false,
+        protected: true
     }
     ,
     tokens: [
@@ -117,7 +123,11 @@ UserSchema.methods.toJSON = function () {
     return user;
 }
 
-UserSchema.plugin(mongooseUniqueValidator)
+UserSchema.statics.printTree = function() {
+    return this.schema.tree;
+}
 
+UserSchema.plugin(mongooseUniqueValidator)
+UserSchema.plugin(mongoose_delete, {deletedAt: true, overrideMethods: 'all'})
 
 export const UserModel: IUserModel = model<IUserDocument,IUserModel>('User', UserSchema)

@@ -1,18 +1,14 @@
-//TODO: Add email confirmation to signup and do not send token until after confirmation
-
-import ControllerInterface from "./ControllerInterface";
+import CrudController from "./CrudController";
 import express from 'express';
-import {IUserDocument, UserModel,} from "../models/UserModel";
-import {db} from "../app";
-import {TokenModel} from "../models/EmailTokenModel";
-import {AuthError} from "../services/errorHandling";
-import {findTokenAndVerifyUser} from "../services/userServices";
+import {IUserDocument, UserModel} from "../models/UserModel";
+import {findTokenAndVerifyUser, findUserById, findUserByIdAndUpdate, saveUser} from "../services/userServices";
 
 
-class UserController implements ControllerInterface {
+class UserController implements CrudController {
 
-    index(req: express.Request, res: express.Response) {
-        return res.send("Welcome to users")
+    async index(req: express.Request, res: express.Response) {
+        const users = await UserModel.find();
+        return res.send(users)
     }
 
     async confirm(req: express.Request, res: express.Response, next: express.NextFunction):Promise<express.Response> {
@@ -27,7 +23,7 @@ class UserController implements ControllerInterface {
 
     async store(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
         try {
-            const user:IUserDocument = await db.add(req.body)
+            const user:IUserDocument = await saveUser(req.body)
             const token = await user.generateAuthToken()
             return res.status(200).send({user, token})
         } catch (err) {
@@ -46,12 +42,25 @@ class UserController implements ControllerInterface {
         }
     }
 
-    update(req: express.Request, res: express.Response): express.Response {
-        return res.send();
+    async update(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
+        try{
+            if(req.body.password){delete req.body.password}
+            const user = await findUserByIdAndUpdate(req.params.id, req.body)
+            return res.status(200).send(user)
+        } catch (err) {
+            next(err)
+        }
     }
 
-    destroy(req: express.Request, res: express.Response): express.Response {
-        return res.send();
+    async destroy(req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> {
+        try{
+            const user = await findUserById(req.params.id)
+            await user.delete();
+            return res.status(200).send("Deleted")
+        } catch (err) {
+            next(err)
+        }
+
     }
 
     show(req: express.Request, res: express.Response): express.Response {
