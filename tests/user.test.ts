@@ -49,6 +49,7 @@ describe("User Action Tests", () => {
         it("Should sign up user successfully", async () => {
             const response = await signUpUser();
 
+
             expect(response.status).toEqual(200);
 
             const user = await UserModel.findOne({email: validTestUser.email});
@@ -59,8 +60,6 @@ describe("User Action Tests", () => {
                 phoneNumber: validTestUser.phoneNumber
             })
         })
-
-
 
         it("User password should not be included in return response", async () => {
             const response = await signUpUser();

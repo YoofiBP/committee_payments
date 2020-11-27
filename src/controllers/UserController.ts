@@ -1,29 +1,34 @@
 import CrudController from "./CrudController";
 import express from 'express';
 import {IUserDocument, UserModel} from "../models/UserModel";
-import {findTokenAndVerifyUser, findUserById, findUserByIdAndUpdate, saveUser} from "../services/userServices";
+import {databaseService} from "../services/userServices";
 
 
-class UserController implements CrudController {
+class UserController extends CrudController {
 
-    async index(req: express.Request, res: express.Response) {
+    constructor(dbService:databaseService) {
+        super();
+        this.dbService = dbService;
+    }
+
+     index = async (req: express.Request, res: express.Response) => {
         const users = await UserModel.find();
         return res.send(users)
     }
 
-    async confirm(req: express.Request, res: express.Response, next: express.NextFunction):Promise<express.Response> {
+     confirm = async (req: express.Request, res: express.Response, next: express.NextFunction):Promise<express.Response> => {
         try{
             const { token: tokenCode } = req.query;
-            await findTokenAndVerifyUser((tokenCode as string))
+            await  this.dbService.findTokenAndVerifyUser((tokenCode as string))
             return res.status(200).send("Proceed to Login")
         } catch (err) {
             next(err)
         }
     }
 
-    async store(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
+     store = async (req: express.Request, res: express.Response, next:express.NextFunction):Promise<express.Response>  => {
         try {
-            const user:IUserDocument = await saveUser(req.body)
+            const user:IUserDocument = await this.dbService.saveUser(req.body)
             const token = await user.generateAuthToken()
             return res.status(200).send({user, token})
         } catch (err) {
@@ -32,7 +37,7 @@ class UserController implements CrudController {
     }
 
     //Uses Passport middleware
-    async login(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
+     login = async (req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> => {
         try {
             const user = req.user;
             const token = req.token;
@@ -42,19 +47,19 @@ class UserController implements CrudController {
         }
     }
 
-    async update(req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> {
+     update = async (req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> => {
         try{
             if(req.body.password){delete req.body.password}
-            const user = await findUserByIdAndUpdate(req.params.id, req.body)
+            const user = await this.dbService.findUserByIdAndUpdate(req.params.id, req.body)
             return res.status(200).send(user)
         } catch (err) {
             next(err)
         }
     }
 
-    async destroy(req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> {
+     destroy = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> => {
         try{
-            const user = await findUserById(req.params.id)
+            const user = await this.dbService.findUserById(req.params.id)
             await user.delete();
             return res.status(200).send("Deleted")
         } catch (err) {
@@ -63,7 +68,7 @@ class UserController implements CrudController {
 
     }
 
-    show(req: express.Request, res: express.Response): express.Response {
+    show = (req: express.Request, res: express.Response): express.Response => {
         return res.send("Showing");
     }
 }

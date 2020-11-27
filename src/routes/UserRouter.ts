@@ -1,14 +1,13 @@
 //TODO: Add middleware to ensure that only admin can delete (implement policies)
-//TODO: Implement route to deactivate account
-
 import express, {Router} from "express";
 import UserController from "../controllers/UserController";
 import {authStrategies, configurePassport} from "../config/auth";
 import {routeConfigs} from "../config/routing";
 import {removeUnfillable} from "../config/inputGuards";
+import {mongoDatabaseService} from "../services/userServices";
 
 const userRouter: Router = express.Router();
-const userController = new UserController();
+const userController = new UserController(mongoDatabaseService);
 
 userRouter.use(removeUnfillable);
 userRouter.post(routeConfigs.users.signup, userController.store)
