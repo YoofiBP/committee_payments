@@ -12,7 +12,7 @@ class UserController extends CrudController {
     }
 
      index = async (req: express.Request, res: express.Response) => {
-        const users = await UserModel.find();
+        const users = await this.dbService.findAllUsers();
         return res.send(users)
     }
 
@@ -68,8 +68,13 @@ class UserController extends CrudController {
 
     }
 
-    show = (req: express.Request, res: express.Response): express.Response => {
-        return res.send("Showing");
+    show = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> => {
+        try{
+            const user = await this.dbService.findUserById(req.params.id)
+            return res.status(200).send(user);
+        } catch (err){
+            next(err)
+        }
     }
 }
 

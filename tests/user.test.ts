@@ -4,7 +4,7 @@ dotenv.config({path: './test.env'})
 import faker from 'faker';
 import supertest from "supertest";
 import app from '../src/app';
-import {setupDatabase, userOne} from "./fixtures/db";
+import {setupDatabase, userOne, userTwo} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
 import { sendGridEmailVerification} from "../src/services/accountVerification"
 import {TokenModel} from "../src/models/EmailTokenModel";
@@ -21,6 +21,10 @@ faker.locale = 'en_GB';
 
 describe("User Action Tests", () => {
     const signupRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.signup}`
+    const userResourceRoute = `${routeConfigs.users.baseUrl}/${userOne._id}`
+    const userBaseRoute = `${routeConfigs.users.baseUrl}/`
+    const loginRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.login}`
+
     beforeEach(async () => {
         await setupDatabase();
         (sendGridEmailVerification.sendVerification as jest.Mock).mockClear()
@@ -258,9 +262,6 @@ describe("User Action Tests", () => {
     })
 
     describe("Login Route tests", () => {
-
-        const loginRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.login}`
-
         const loginUser = async () => {
             return supertest(app)
                 .post(loginRoute)
@@ -302,6 +303,119 @@ describe("User Action Tests", () => {
                 }).expect(401)
         })
     })
+
+    describe('Patch route tests', () => {
+        it("Should update user successfully", async () => {
+            const newDetails = {
+                name: 'Yoofi New Name',
+                email: 'user@gmail.com'
+            }
+            const response = await supertest(app)
+                .patch(userResourceRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .send(newDetails)
+                .expect(200)
+
+            expect(response.body).toMatchObject(newDetails)
+
+            const updatedUser = await UserModel.findOne({email: newDetails.email})
+            expect(updatedUser).toMatchObject(newDetails)
+        })
+    })
+
+    describe("Delete route tests", () => {
+        it("Should delete user successfully", async () => {
+            await supertest(app)
+                .delete(userResourceRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .expect(200)
+
+            const deleteUser = await UserModel.findById(userOne._id);
+            expect(deleteUser).toBeFalsy();
+        })
+    })
+
+    describe("Get user route tests", () => {
+        it("Should get user successfully", async () => {
+            const response = await supertest(app)
+                .get(userResourceRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .expect(200)
+
+            expect(response.body).toMatchObject({
+                name: userOne.name,
+                email: userOne.email
+            })
+        })
+
+        it("Should get all users successfully", async () => {
+            const response = await supertest(app)
+                .get(userBaseRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .expect(200)
+
+            const numberOfUsersInDb = await UserModel.countDocuments({})
+            expect(response.body.length).toEqual(numberOfUsersInDb)
+        })
+    })
+
+    describe('Authorization tests',  () => {
+        it('Should not allow user to make patch request if not authorized', async () => {
+            await supertest(app)
+                .patch(userResourceRoute)
+                .send({
+                    name: "New name"
+                })
+                .expect(401)
+        })
+
+        it("Should not allow user to make patch request if not verified", async () => {
+            await supertest(app)
+                .patch(userResourceRoute)
+                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
+                .send({})
+                .expect(401)
+        })
+
+        it("Should not allow user to make delete request if not authorized", async () => {
+            await supertest(app)
+                .delete(userResourceRoute)
+                .expect(401)
+        })
+
+        it("Should not allow user to make delete request if not verified", async () => {
+            await supertest(app)
+                .delete(userResourceRoute)
+                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it("Should not allow user to make get request if not authorized", async () => {
+            await supertest(app)
+                .get(userResourceRoute)
+                .expect(401)
+        })
+
+        it("Should not allow user to make get request if not verified", async () => {
+            await supertest(app)
+                .get(userResourceRoute)
+                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it('Should not allow user to make get request for all users if not authorized', async () => {
+            await supertest(app)
+                .get(userBaseRoute)
+                .expect(401)
+        })
+
+        it("Should not allow user to make get request for all users if not verified", async () => {
+            await supertest(app)
+                .get(userBaseRoute)
+                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
+                .expect(401)
+        })
+    });
 })
 
 

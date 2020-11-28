@@ -12,6 +12,8 @@ export interface databaseService {
     findUserByQuery(...args: any)
 
     findUserByIdAndUpdate(userId: string, data: {})
+
+    findAllUsers();
 }
 
 class MongoDatabaseService implements databaseService {
@@ -50,8 +52,18 @@ class MongoDatabaseService implements databaseService {
         }
     }
 
-    findUserByIdAndUpdate(userId: string, data: {}) {
-        return UserModel.findByIdAndUpdate(userId, data, {new: true, runValidators: true})
+    async findUserByIdAndUpdate(userId: string, data: {}) {
+        const user = await UserModel.findById(userId)
+        Object.keys(data).forEach(key => {
+            if(user[key]){
+                user[key] = data[key]
+            }
+        })
+        return user.save()
+    }
+
+    findAllUsers() {
+        return UserModel.find({})
     }
 }
 

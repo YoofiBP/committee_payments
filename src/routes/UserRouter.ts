@@ -25,6 +25,4 @@ userRouter.route(routeConfigs.general.root)
     .all(configurePassport(authStrategies.jwt))
     .get(userController.index)
 
-
-
 export default userRouter;
