@@ -1,3 +1,5 @@
+//TODO: Add test to ensure password encryption
+
 import dotenv from 'dotenv';
 dotenv.config({path: './test.env'})
 

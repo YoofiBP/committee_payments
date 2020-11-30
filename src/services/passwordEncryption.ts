@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import {HookNextFunction} from "mongoose";
 import {IUserDocument} from "../models/UserModel";
 
-interface PasswordEncrypter {
+export interface PasswordEncrypter {
     encrypt(textString:string):string | Promise<string>;
     decrypt(plainText:string, hash:string): boolean | Promise<boolean>;
 }

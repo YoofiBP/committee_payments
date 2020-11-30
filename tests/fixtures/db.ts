@@ -15,7 +15,7 @@ export const userOne = {
         token: jwt.sign({ id: userIdOne }, process.env.SECRET),
     }],
     isVerified: true,
-    isAdmin: true
+    role: 'admin'
 }
 
 export const userTwo = {
@@ -28,7 +28,7 @@ export const userTwo = {
         token: jwt.sign({ id: userIdTwo }, process.env.SECRET),
     }],
     isVerified: false,
-    isAdmin: false
+    role: 'basic'
 }
 
 

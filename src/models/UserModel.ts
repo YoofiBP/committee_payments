@@ -14,6 +14,7 @@ export interface IUser {
     phoneNumber: string;
     tokens: Array<any>;
     isVerified?: boolean;
+    role: string;
 }
 
 //instance methods added here
@@ -70,9 +71,10 @@ const UserSchema:Schema = new Schema({
         default: false,
         protected: true
     },
-    isAdmin: {
-        type: Boolean,
-        default: false,
+    role: {
+        type: String,
+        default: 'basic',
+        enum: ['basic','admin','super'],
         protected: true
     }
     ,
@@ -91,7 +93,6 @@ const UserSchema:Schema = new Schema({
 
 UserSchema.pre('save',  encryptPassword(bcryptEncrypter))
 
-//if err then dont send email
 UserSchema.pre('save', sendVerification(sendGridEmailVerification))
 
 //validation handling middleware
@@ -104,9 +105,9 @@ UserSchema.post('save',  async function (err, doc, next ) {
 });
 
 UserSchema.methods.generateAuthToken = async function() {
-    const user = this;
-    const payload = {id: user._id.toString()};
-    const token = await jwt.sign(payload, process.env.SECRET!)
+    const user = this as IUserDocument;
+    const payload = {id: user._id.toString(), role: user.role};
+    const token = await jwt.sign(payload, process.env.SECRET!, {expiresIn:'1d'})
     user.tokens = user.tokens.concat({token})
     try {
         await user.save();

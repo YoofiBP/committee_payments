@@ -1,3 +1,4 @@
+//TODO: write tests for errorHandler
 import mongoose from 'mongoose';
 import {MongoError} from 'mongodb'
 

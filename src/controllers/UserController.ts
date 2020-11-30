@@ -2,7 +2,8 @@ import CrudController from "./CrudController";
 import express from 'express';
 import {IUserDocument, UserModel} from "../models/UserModel";
 import {databaseService} from "../services/userServices";
-
+import ac, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
+import {AuthError} from "../services/errorHandling";
 
 class UserController extends CrudController {
 
@@ -36,7 +37,7 @@ class UserController extends CrudController {
         }
     }
 
-    //Uses Passport middleware
+    //Uses Passport middleware too authenticate and obtain active user
      login = async (req: express.Request, res: express.Response, next:express.NextFunction): Promise<express.Response> => {
         try {
             const user = req.user;
@@ -73,6 +74,37 @@ class UserController extends CrudController {
             const user = await this.dbService.findUserById(req.params.id)
             return res.status(200).send(user);
         } catch (err){
+            next(err)
+        }
+    }
+
+    removeUnfillable = (req, res, next) => {
+        const ModelTree = UserModel.printTree()
+        Object.keys(ModelTree).forEach(key => {
+            if(ModelTree[key].hasOwnProperty('protected')){
+                if(req.body[key]){
+                    delete req.body[key]
+                }
+            }
+        });
+        next()
+    }
+
+    grantAccess = (action, resource) => async (req,res,next) => {
+        try {
+            if(adminRoles.includes(req.user.role)){
+                return next()
+            }
+            const permission = ac.can(req.user.role)[action](resource)
+            if(!permission.granted){throw new AuthError(ACCESS_CONTROL_ERROR_MESSAGE)}
+            if(req.params.id){
+                if(req.user._id.toString() !== req.params.id){
+                    throw new AuthError(ACCESS_CONTROL_ERROR_MESSAGE)
+                }
+                return next()
+            }
+            return next()
+        } catch(err) {
             next(err)
         }
     }

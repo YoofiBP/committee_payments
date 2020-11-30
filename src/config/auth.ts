@@ -1,19 +1,19 @@
 import passport from "passport";
 import {Strategy as LocalStrategy} from 'passport-local';
-import {bcryptEncrypter} from "../services/passwordEncryption";
+import {bcryptEncrypter, PasswordEncrypter} from "../services/passwordEncryption";
 import {ExtractJwt, Strategy as JwtStrategy} from 'passport-jwt'
 import {databaseService, mongoDatabaseService} from "../services/userServices";
 
 const LOGIN_FAIL_MESSAGE = 'Unable to Login';
 
-const localStrategyVerification = (dbService:databaseService) => {
+const localStrategyVerification = (dbService:databaseService, passwordDecrypter: PasswordEncrypter) => {
     return async (req,email, password, done) => {
         try{
             const [user] = await dbService.findUserByQuery({email},'+password');
             if(!user){
                 return done(null, false, {message: LOGIN_FAIL_MESSAGE})
             }
-            const isMatch = await bcryptEncrypter.decrypt(password, user.password);
+            const isMatch = await passwordDecrypter.decrypt(password, user.password);
             if(!isMatch){
                 return done(null, false, {message: LOGIN_FAIL_MESSAGE})
             }
@@ -45,7 +45,7 @@ const jwtOptions = {
     passReqToCallback: true
 }
 
-passport.use(new LocalStrategy({usernameField: 'email', session: false, passReqToCallback:true}, localStrategyVerification(mongoDatabaseService)))
+passport.use(new LocalStrategy({usernameField: 'email', session: false, passReqToCallback:true}, localStrategyVerification(mongoDatabaseService, bcryptEncrypter)))
 
 passport.use(new JwtStrategy(jwtOptions, JwtStrategyVerification(mongoDatabaseService)))
 
