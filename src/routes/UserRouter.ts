@@ -1,4 +1,3 @@
-//TODO: Add middleware to ensure that only admin can delete (implement policies)
 import express, {Router} from "express";
 import UserController from "../controllers/UserController";
 import {authStrategies, configurePassport} from "../config/auth";

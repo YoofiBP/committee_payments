@@ -8,6 +8,9 @@
     "dev": "nodemon src/server.ts",
     "test": "jest --watch --runInBand"
   },
+  "engines": {
+    "node": "10.16.3"
+  },
   "jest": {
     "moduleFileExtensions": [
       "ts",

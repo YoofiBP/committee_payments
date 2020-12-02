@@ -1,12 +1,10 @@
-//TODO: Add test to ensure password encryption
-
 import dotenv from 'dotenv';
 dotenv.config({path: './test.env'})
 
 import faker from 'faker';
 import supertest from "supertest";
 import app from '../src/app';
-import {setupDatabase, userOne, userTwo} from "./fixtures/db";
+import {setupDatabase, userOne, userThree, userTwo} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
 import { sendGridEmailVerification} from "../src/services/accountVerification"
 import {TokenModel} from "../src/models/EmailTokenModel";
@@ -26,6 +24,8 @@ describe("User Action Tests", () => {
     const userResourceRoute = `${routeConfigs.users.baseUrl}/${userOne._id}`
     const userBaseRoute = `${routeConfigs.users.baseUrl}/`
     const loginRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.login}`
+
+    const generateUserResourceRoute = (userId) => `${routeConfigs.users.baseUrl}/${userId}`
 
     beforeEach(async () => {
         await setupDatabase();
@@ -65,6 +65,14 @@ describe("User Action Tests", () => {
                 email: validTestUser.email,
                 phoneNumber: validTestUser.phoneNumber
             })
+        })
+
+        it("Should encrypt password before saving into db", async () => {
+            await signUpUser();
+
+            const user = await UserModel.findOne({email: validTestUser.email}).select('+password');
+            expect(user.password).not.toEqual(validTestUser.password)
+            expect(user.password).toBeTruthy()
         })
 
         it("User password should not be included in return response", async () => {
@@ -297,7 +305,7 @@ describe("User Action Tests", () => {
         })
 
         it("Should return 401 response status when login fails", async () => {
-            const response = await supertest(app)
+            await supertest(app)
                 .post(loginRoute)
                 .send({
                     email: userOne.email,
@@ -362,7 +370,7 @@ describe("User Action Tests", () => {
     })
 
     describe('Authorization tests',  () => {
-        it('Should not allow user to make patch request if not authorized', async () => {
+        it('Should not allow user to make patch request if not authenticated', async () => {
             await supertest(app)
                 .patch(userResourceRoute)
                 .send({
@@ -379,7 +387,14 @@ describe("User Action Tests", () => {
                 .expect(401)
         })
 
-        it("Should not allow user to make delete request if not authorized", async () => {
+        it('Should not allow user to make patch request for user profile that is not theirs if not admin', async () => {
+            await supertest(app)
+                .patch(generateUserResourceRoute(userOne._id))
+                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it("Should not allow user to make delete request if not authenticated", async () => {
             await supertest(app)
                 .delete(userResourceRoute)
                 .expect(401)
@@ -392,7 +407,14 @@ describe("User Action Tests", () => {
                 .expect(401)
         })
 
-        it("Should not allow user to make get request if not authorized", async () => {
+        it('Should not allow user to make delete request for user profile that is not theirs if not admin', async () => {
+            await supertest(app)
+                .delete(generateUserResourceRoute(userOne._id))
+                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it("Should not allow user to make get request if not authenticated", async () => {
             await supertest(app)
                 .get(userResourceRoute)
                 .expect(401)
@@ -405,7 +427,14 @@ describe("User Action Tests", () => {
                 .expect(401)
         })
 
-        it('Should not allow user to make get request for all users if not authorized', async () => {
+        it('Should not allow user to make get request for user profile that is not theirs if not admin', async () => {
+            await supertest(app)
+                .get(generateUserResourceRoute(userOne._id))
+                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it('Should not allow user to make get request for all users if not authenticated', async () => {
             await supertest(app)
                 .get(userBaseRoute)
                 .expect(401)
@@ -415,6 +444,13 @@ describe("User Action Tests", () => {
             await supertest(app)
                 .get(userBaseRoute)
                 .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
+                .expect(401)
+        })
+
+        it('Should not allow user to make get request for all users if not admin', async () => {
+            await supertest(app)
+                .get(userBaseRoute)
+                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
                 .expect(401)
         })
     });
