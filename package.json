@@ -85,7 +85,11 @@
     "passport-local": "^1.0.0",
     "sequelize": "^6.3.5",
     "ts-node": "^9.0.0",
-    "validator": "^13.1.17"
+    "validator": "^13.1.17",
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-typescript": "^7.12.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.8",
