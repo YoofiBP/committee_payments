@@ -1,7 +1,7 @@
 import {routeConfigs} from "./routing";
 
 const generateConfirmationLink = (token) => {
-    return `http://${process.env.BASE_URL}${routeConfigs.users.baseUrl}${routeConfigs.users.userConfirmation}?token=${token}`
+    return `${process.env.BASE_URL}${routeConfigs.users.baseUrl}${routeConfigs.users.userConfirmation}?token=${token}`
 }
 
 const getHTMLBody = (link) => {
