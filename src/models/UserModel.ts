@@ -7,6 +7,7 @@ import {sendGridEmailVerification, sendVerification} from "../services/accountVe
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
 import * as mongoose from "mongoose";
+import {IContributionDocument} from "./ContributionModel";
 
 export interface IUser {
     name:string;
@@ -17,7 +18,7 @@ export interface IUser {
     isVerified?: boolean;
     role?: string;
     totalContribution?: number
-    contributions?: Array<mongoose.Types.ObjectId>
+    contributions?: Array<IContributionDocument>
 }
 
 //instance methods added here
@@ -84,7 +85,13 @@ const UserSchema:Schema = new Schema({
         type: Number,
         default: 0
     },
-    contributions: [mongoose.Types.ObjectId]
+    contributions: [
+        {
+        contribution: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Contribution'
+        }
+    }]
     ,
     tokens: [
         {

@@ -4,16 +4,15 @@ import {UserModel} from "./UserModel";
 
 interface IContribution  {
     contributorId: Types.ObjectId;
-    name: string,
     amount: number,
     date: Date
 }
 
-interface IContributionDocument extends IContribution, Document {
+export interface IContributionDocument extends IContribution, Document {
 
 }
 
-interface IContributionModel extends Model<IContributionDocument> {
+export interface IContributionModel extends Model<IContributionDocument> {
 
 }
 
@@ -21,10 +20,6 @@ const ContributionSchema = new Schema({
     contributorID: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true
-    },
-    name: {
-        type: String,
         required: true
     },
     amount: {
@@ -39,10 +34,11 @@ const ContributionSchema = new Schema({
 
 ContributionSchema.pre('save', async function (next) {
     try{
-        const {amount, contributorId} = this as IContributionDocument;
+        const contribution = this as IContributionDocument
+        const {amount, contributorId} = contribution;
         const contributor = await UserModel.findById(contributorId);
         contributor.totalContribution = contributor.totalContribution + amount;
-        contributor.contributions = contributor.contributions.concat(this._id)
+        contributor.contributions = contributor.contributions.concat(contribution)
         contributor.save();
     } catch (e) {
        next(e)
