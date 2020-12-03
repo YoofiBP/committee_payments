@@ -6,6 +6,7 @@ import { errorMessageParser} from "../services/errorHandling"
 import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
+import * as mongoose from "mongoose";
 
 export interface IUser {
     name:string;
@@ -16,6 +17,7 @@ export interface IUser {
     isVerified?: boolean;
     role?: string;
     totalContribution?: number
+    contributions?: Array<mongoose.Types.ObjectId>
 }
 
 //instance methods added here
@@ -81,7 +83,8 @@ const UserSchema:Schema = new Schema({
     totalContribution: {
         type: Number,
         default: 0
-    }
+    },
+    contributions: [mongoose.Types.ObjectId]
     ,
     tokens: [
         {

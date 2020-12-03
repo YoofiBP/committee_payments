@@ -42,6 +42,7 @@ ContributionSchema.pre('save', async function (next) {
         const {amount, contributorId} = this as IContributionDocument;
         const contributor = await UserModel.findById(contributorId);
         contributor.totalContribution = contributor.totalContribution + amount;
+        contributor.contributions = contributor.contributions.concat(this._id)
         contributor.save();
     } catch (e) {
        next(e)
