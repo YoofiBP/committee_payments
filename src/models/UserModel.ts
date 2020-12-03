@@ -14,7 +14,8 @@ export interface IUser {
     phoneNumber: string;
     tokens: Array<any>;
     isVerified?: boolean;
-    role: string;
+    role?: string;
+    totalContribution?: number
 }
 
 //instance methods added here
@@ -43,7 +44,7 @@ const UserSchema:Schema = new Schema({
         index: true,
         validate: {
             validator: (value:string) => validator.isEmail(value),
-            message: (props:any) => "Invalid Email Address"
+            message: () => "Invalid Email Address"
         },
     },
     password: {
@@ -54,7 +55,7 @@ const UserSchema:Schema = new Schema({
         minlength: 6,
         validate: {
             validator: (value:string) => !validator.contains(value, "password"),
-            message: (props:any) => "Your password cannot contain the word 'password'"
+            message: () => "Your password cannot contain the word 'password'"
         }
     },
     phoneNumber: {
@@ -63,7 +64,7 @@ const UserSchema:Schema = new Schema({
         required: true,
         validate: {
             validator: (value:string) => validator.isMobilePhone(value, 'any', {strictMode: true}),
-            message: (props:any) => "Please include country code (e.g. +233 for Ghana +44 for the United Kingdom) to phone number"
+            message: () => "Please include country code (e.g. +233 for Ghana +44 for the United Kingdom) to phone number"
         }
     },
     isVerified: {
@@ -76,6 +77,10 @@ const UserSchema:Schema = new Schema({
         default: 'basic',
         enum: ['basic','admin','super'],
         protected: true
+    },
+    totalContribution: {
+        type: Number,
+        default: 0
     }
     ,
     tokens: [

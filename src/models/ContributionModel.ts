@@ -1,4 +1,6 @@
+//TODO: Test contribution model
 import { Document, Model, Schema, model, Types} from "mongoose";
+import {UserModel} from "./UserModel";
 
 interface IContribution  {
     contributorId: Types.ObjectId;
@@ -35,5 +37,17 @@ const ContributionSchema = new Schema({
     }
 })
 
-const ContributionModel:IContributionModel = model<IContributionDocument,IContributionModel>('Contribution',ContributionSchema)
+ContributionSchema.pre('save', async function (next) {
+    try{
+        const {amount, contributorId} = this as IContributionDocument;
+        const contributor = await UserModel.findById(contributorId);
+        contributor.totalContribution = contributor.totalContribution + amount;
+        contributor.save();
+    } catch (e) {
+       next(e)
+    }
+    next()
+})
+
+export const ContributionModel:IContributionModel = model<IContributionDocument,IContributionModel>('Contribution',ContributionSchema)
 

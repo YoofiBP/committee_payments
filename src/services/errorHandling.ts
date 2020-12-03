@@ -16,7 +16,7 @@ export class AuthError extends Error {
     }
 }
 
-export const appErrorHandler = (err, req, res, next) => {
+export const appErrorHandler = (err, req, res) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
     err.message = err.message || 'A server error occurred'
