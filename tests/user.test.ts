@@ -56,7 +56,7 @@ describe("User Action Tests", () => {
             const response = await signUpUser();
 
 
-            expect(response.status).toEqual(200);
+            expect(response.status).toEqual(201);
 
             const user = await UserModel.findOne({email: validTestUser.email});
             expect(user).toBeTruthy();

@@ -31,7 +31,7 @@ class UserController extends CrudController {
         try {
             const user:IUserDocument = await this.dbService.saveUser(req.body)
             const token = await user.generateAuthToken()
-            return res.status(200).send({user, token})
+            return res.status(201).send({user, token})
         } catch (err) {
             next(err)
         }
