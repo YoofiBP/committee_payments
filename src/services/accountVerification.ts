@@ -20,7 +20,7 @@ export class SendGridEmailVerification implements VerifiesUsers {
     }
 
     sendVerification(user, token) {
-        this.mailerService.send(this.createVerificationMessage(user.email, token))
+        //this.mailerService.send(this.createVerificationMessage(user.email, token))
         console.log("Email Sent")
     }
 

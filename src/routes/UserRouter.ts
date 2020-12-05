@@ -1,13 +1,12 @@
-import express, {Router} from "express";
+import {Router} from "express";
 import UserController from "../controllers/UserController";
 import {authStrategies, configurePassport} from "../config/auth";
 import {routeConfigs} from "../config/routing";
 import {mongoDatabaseService} from "../services/userServices";
 
-const userRouter: Router = express.Router();
+const userRouter: Router = Router();
 const userController = new UserController(mongoDatabaseService);
 
-userRouter.use(userController.removeUnfillable);
 userRouter.post(routeConfigs.users.signup, userController.store)
 userRouter.post(routeConfigs.users.login, configurePassport(authStrategies.local), userController.login)
 

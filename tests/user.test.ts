@@ -4,9 +4,9 @@ dotenv.config({path: './test.env'})
 import faker from 'faker';
 import supertest from "supertest";
 import app from '../src/app';
-import {setupDatabase, userOne, userThree, userTwo} from "./fixtures/db";
+import {setupDatabase, tearDownDatabase, userOne, userThree, userTwo} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
-import { sendGridEmailVerification} from "../src/services/accountVerification"
+import {sendGridEmailVerification} from "../src/services/accountVerification"
 import {TokenModel} from "../src/models/EmailTokenModel";
 import {routeConfigs} from "../src/config/routing";
 
@@ -33,8 +33,7 @@ describe("User Action Tests", () => {
     });
 
     afterEach(async () => {
-        await UserModel.deleteMany({});
-        await TokenModel.deleteMany({})
+        await tearDownDatabase()
     })
 
     describe("Sign Up route tests",  () => {

@@ -8,5 +8,8 @@ export const routeConfigs = {
         userConfirmation: '/confirmation',
         login: '/login',
         signup: '/signup'
+    },
+    contributions: {
+        baseUrl: '/contributions',
     }
 }

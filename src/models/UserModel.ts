@@ -1,3 +1,4 @@
+import {mongoose} from '../config/mongoosePlugins'
 import {Schema, Document, model, Model} from 'mongoose';
 import validator from "validator";
 import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
@@ -6,8 +7,7 @@ import { errorMessageParser} from "../services/errorHandling"
 import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
-import * as mongoose from "mongoose";
-import {IContributionDocument} from "./ContributionModel";
+import {ContributionSchema, IContributionDocument} from "./ContributionModel";
 
 export interface IUser {
     name:string;
@@ -32,7 +32,7 @@ export interface IUserModel extends Model<IUserDocument>, mongoose_delete.SoftDe
 }
 
 
-const UserSchema:Schema = new Schema({
+const UserSchema:Schema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -85,13 +85,7 @@ const UserSchema:Schema = new Schema({
         type: Number,
         default: 0
     },
-    contributions: [
-        {
-        contribution: {
-            type: mongoose.Types.ObjectId,
-            ref: 'Contribution'
-        }
-    }]
+    contributions: [ContributionSchema]
     ,
     tokens: [
         {
@@ -100,7 +94,15 @@ const UserSchema:Schema = new Schema({
                 required: true
             }
         }
-    ]
+    ],
+    createdAt: {
+        type: Date,
+        protected: true
+    },
+    updatedAt: {
+        type: Date,
+        protected: true
+    },
 },{
     strict: "throw",
     timestamps: true
@@ -113,9 +115,9 @@ UserSchema.pre('save', sendVerification(sendGridEmailVerification))
 //validation handling middleware
 UserSchema.post('save',  async function (err, doc, next ) {
     if(err){
-        next(errorMessageParser(err))
+        return next(errorMessageParser(err))
     } else {
-        next();
+        return next();
     }
 });
 
@@ -139,10 +141,6 @@ UserSchema.methods.toJSON = function () {
     delete user.isVerified;
     delete user.role;
     return user;
-}
-
-UserSchema.statics.printTree = function() {
-    return this.schema.tree;
 }
 
 UserSchema.plugin(mongooseUniqueValidator)

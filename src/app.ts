@@ -9,6 +9,8 @@ import cors from 'cors';
 import {appErrorHandler} from "./services/errorHandling";
 import passport from "passport"
 import {routeConfigs} from "./config/routing";
+import contributionRouter from "./routes/ContributionRouter";
+import {removeUnfillable} from "./config/globalMiddleware";
 
 
 export const db:DB = mongoDatabase;
@@ -30,7 +32,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(passport.initialize())
 
+app.use(removeUnfillable)
 app.use(routeConfigs.users.baseUrl, userRouter)
+app.use(routeConfigs.contributions.baseUrl,contributionRouter)
+
 app.use(appErrorHandler);
 
 export default app;

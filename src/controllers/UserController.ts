@@ -78,18 +78,6 @@ class UserController extends CrudController {
         }
     }
 
-    removeUnfillable = (req, res, next) => {
-        const ModelTree = UserModel.printTree()
-        Object.keys(ModelTree).forEach(key => {
-            if(ModelTree[key].hasOwnProperty('protected')){
-                if(req.body[key]){
-                    delete req.body[key]
-                }
-            }
-        });
-        next()
-    }
-
     grantAccess = (action, resource) => async (req,res,next) => {
         try {
             if(adminRoles.includes(req.user.role)){

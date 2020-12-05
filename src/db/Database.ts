@@ -1,5 +1,3 @@
-import {IUserModel, UserModel} from "../models/UserModel";
-
 export abstract class DB {
     protected driver: any
     protected connectionVariables: any
@@ -55,69 +53,8 @@ export class MongoDatabase extends DB  {
     setConnection(connection:any){
         this.connection = connection;
     }
-
-    getConnection(){
-        return this.connection;
-    }
 }
 
 export const mongoDatabase = MongoDatabase.getInstance()
 
-// Abstract Decorator
-/*export abstract class ResourceManager extends DB{
-    abstract add(...args:any): any;
-    abstract delete(...args:any):any;
-    abstract update(...args:any):any;
-    abstract find(...args:any):any;
-    abstract getUserModel():any;
-}*/
-
-// Concrete Decorator
-/*export class MongoResourceManager extends ResourceManager {
-    protected userModel: IUserModel | null;
-    protected database: DB;
-
-    constructor(database:DB) {
-        super();
-        this.database = database;
-        this.userModel = UserModel;
-    }
-
-    add(data: {}) {
-        if(this.userModel){
-            const user: any = new this.userModel(data);
-            return user.save();
-        }
-    }
-
-    delete(modelId:any) {
-
-    }
-
-    update(modelId: any) {
-
-    }
-
-    find(queryObject: {}, fields:{}|string) {
-        if(this.userModel){
-            return this.userModel.findOne(...arguments)
-        }
-    }
-
-    connect(){
-        this.database.connect()
-    }
-
-    setConnectionVariables(connectionUri: string, connectionOptions: {}) {
-        this.database.setConnectionVariables(connectionUri, connectionOptions)
-    }
-
-    setUserModel(userModel:IUserModel){
-        this.userModel = userModel;
-    }
-
-    getUserModel():IUserModel {
-        return this.userModel;
-    }
-}*/
 
