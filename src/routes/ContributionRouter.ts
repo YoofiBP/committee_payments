@@ -1,18 +1,11 @@
 import {Router} from "express";
-import {ContributionModel} from "../models/ContributionModel";
+import ContributionController from "../controllers/ContributionController";
 import {authStrategies, configurePassport} from "../config/auth";
+import {mongoDatabaseService} from "../services/userServices";
 
 const contributionRouter: Router = Router();
+const contributionController = new ContributionController(mongoDatabaseService)
 
-contributionRouter.post('/', configurePassport(authStrategies.jwt), async (req, res, next) => {
-    try{
-        const contribution = new ContributionModel(req.body);
-        await contribution.save();
-        return res.status(200).send("Contribution saved")
-    } catch (err) {
-        next(err)
-    }
-
-})
+contributionRouter.post('/', configurePassport(authStrategies.jwt), contributionController.validateContribution, contributionController.store)
 
 export default contributionRouter;

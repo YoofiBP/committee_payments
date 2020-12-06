@@ -43,3 +43,13 @@ export const errorMessageParser = (errorBody: mongoose.Error | MongoError ):{} =
     }
     return {message: parsedBody, statusCode};
 }
+
+export function mongooseValidationErrorHandler() {
+    return async function(err: MongoError, doc: mongoose.Document, next) {
+        if(err){
+            return next(errorMessageParser(err))
+        } else {
+            return next();
+        }
+    }
+}

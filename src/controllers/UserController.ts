@@ -1,17 +1,11 @@
-import CrudController from "./CrudController";
+import CrudController, {CrudActions} from "./CrudController";
 import express from 'express';
-import {IUserDocument, UserModel} from "../models/UserModel";
+import {IUserDocument} from "../models/UserModel";
 import {databaseService} from "../services/userServices";
 import ac, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
 import {AuthError} from "../services/errorHandling";
 
-class UserController extends CrudController {
-
-    constructor(dbService:databaseService) {
-        super();
-        this.dbService = dbService;
-    }
-
+class UserController extends CrudController implements CrudActions{
      index = async (req: express.Request, res: express.Response) => {
         const users = await this.dbService.findAllUsers();
         return res.send(users)
@@ -27,7 +21,7 @@ class UserController extends CrudController {
         }
     }
 
-     store = async (req: express.Request, res: express.Response, next:express.NextFunction):Promise<express.Response>  => {
+     store = async (req: express.Request, res: express.Response, next:express.NextFunction):Promise<express.Response> => {
         try {
             const user:IUserDocument = await this.dbService.saveUser(req.body)
             const token = await user.generateAuthToken()
@@ -84,10 +78,10 @@ class UserController extends CrudController {
                 return next()
             }
             const permission = ac.can(req.user.role)[action](resource)
-            if(!permission.granted){throw new AuthError(ACCESS_CONTROL_ERROR_MESSAGE)}
+            if(!permission.granted){ return next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))}
             if(req.params.id){
                 if(req.user._id.toString() !== req.params.id){
-                    throw new AuthError(ACCESS_CONTROL_ERROR_MESSAGE)
+                    return next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))
                 }
                 return next()
             }

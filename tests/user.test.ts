@@ -53,8 +53,6 @@ describe("User Action Tests", () => {
 
         it("Should sign up user successfully", async () => {
             const response = await signUpUser();
-
-
             expect(response.status).toEqual(201);
 
             const user = await UserModel.findOne({email: validTestUser.email});
@@ -64,6 +62,31 @@ describe("User Action Tests", () => {
                 email: validTestUser.email,
                 phoneNumber: validTestUser.phoneNumber
             })
+        })
+
+        it("Should not set protected fields from user input", async () => {
+            const user = {...validTestUser, role:'admin', isVerified: true, createdAt: new Date('December 17, 1995 03:24:00'), updatedAt: new Date('December 17, 1995 03:24:00')}
+            await supertest(app)
+                .post(signupRoute)
+                .send(user)
+                .expect(201)
+
+            const userInDatabase = await UserModel.findOne({email: user.email})
+            expect(userInDatabase.role).not.toEqual(user.role)
+            expect(userInDatabase.isVerified).not.toEqual(user.isVerified)
+            expect(userInDatabase.createdAt).not.toEqual(user.createdAt)
+            expect(userInDatabase.updatedAt).not.toEqual(user.createdAt)
+        })
+
+        it("Should not set unexpected fields from user input", async () => {
+            const user = {...validTestUser, extraField: "extraField"}
+            await supertest(app)
+                .post(signupRoute)
+                .send(user)
+                .expect(201)
+
+            const userInDatabase = await UserModel.findOne({email: user.email})
+            expect((userInDatabase as any).extraField).toBeFalsy()
         })
 
         it("Should encrypt password before saving into db", async () => {

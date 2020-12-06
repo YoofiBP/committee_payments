@@ -1,6 +1,7 @@
 import {TokenModel} from "../models/EmailTokenModel";
 import {AuthError} from "./errorHandling";
 import {IUserDocument, UserModel} from "../models/UserModel";
+import {IContributionDocument, ContributionModel} from "../models/ContributionModel";
 
 export interface databaseService {
     findTokenAndVerifyUser(tokenCode: string);
@@ -14,6 +15,8 @@ export interface databaseService {
     findUserByIdAndUpdate(userId: string, data: {})
 
     findAllUsers();
+
+    saveContribution(contributionData: {})
 }
 
 class MongoDatabaseService implements databaseService {
@@ -26,8 +29,8 @@ class MongoDatabaseService implements databaseService {
             }
             await UserModel.findByIdAndUpdate(token.userId, {isVerified: true});
             await TokenModel.deleteMany({code: token.code})
-        } catch (e) {
-            throw e
+        } catch (err) {
+            throw err
         }
     }
 
@@ -64,6 +67,11 @@ class MongoDatabaseService implements databaseService {
 
     findAllUsers() {
         return UserModel.find({})
+    }
+
+    saveContribution(contributionData: {}) {
+        const contribution = new ContributionModel(contributionData);
+        return contribution.save();
     }
 }
 

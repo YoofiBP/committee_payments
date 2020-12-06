@@ -13,7 +13,7 @@ userRouter.post(routeConfigs.users.login, configurePassport(authStrategies.local
 userRouter.get(routeConfigs.users.userConfirmation, userController.confirm)
 
 userRouter.route(routeConfigs.general.resourceId)
-    .all(configurePassport(authStrategies.jwt),userController.grantAccess('updateOwn','profile'))
+    .all(configurePassport(authStrategies.jwt), userController.grantAccess('updateOwn','profile'))
     .get(userController.show)
     .patch(userController.update)
     .delete(userController.destroy)

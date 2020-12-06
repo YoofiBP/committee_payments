@@ -3,11 +3,12 @@ import {Schema, Document, model, Model} from 'mongoose';
 import validator from "validator";
 import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
 import jwt from 'jsonwebtoken';
-import { errorMessageParser} from "../services/errorHandling"
 import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
 import {ContributionSchema, IContributionDocument} from "./ContributionModel";
+import {mongooseValidationErrorHandler} from "../services/errorHandling";
+
 
 export interface IUser {
     name:string;
@@ -19,6 +20,8 @@ export interface IUser {
     role?: string;
     totalContribution?: number
     contributions?: Array<IContributionDocument>
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 //instance methods added here
@@ -83,9 +86,13 @@ const UserSchema:Schema = new mongoose.Schema({
     },
     totalContribution: {
         type: Number,
-        default: 0
+        default: 0,
+        protected: true
     },
-    contributions: [ContributionSchema]
+    contributions:{
+        type: [ContributionSchema],
+        protected: true
+    }
     ,
     tokens: [
         {
@@ -112,14 +119,7 @@ UserSchema.pre('save',  encryptPassword(bcryptEncrypter))
 
 UserSchema.pre('save', sendVerification(sendGridEmailVerification))
 
-//validation handling middleware
-UserSchema.post('save',  async function (err, doc, next ) {
-    if(err){
-        return next(errorMessageParser(err))
-    } else {
-        return next();
-    }
-});
+UserSchema.post('save',  mongooseValidationErrorHandler());
 
 UserSchema.methods.generateAuthToken = async function() {
     const user = this as IUserDocument;
