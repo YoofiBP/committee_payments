@@ -9,8 +9,17 @@ class ContributionController extends CrudController implements CrudActions {
     store = async (req: express.Request, res: express.Response, next:express.NextFunction):Promise<express.Response>  => {
         try {
             const contribution: IContributionDocument = await this.dbService.saveContribution(req.body);
-            return res.status(201).send({contribution})
+            return res.status(201).send(contribution)
         } catch(err){
+            next(err)
+        }
+    }
+
+    index = async (req: express.Request, res: express.Response, next:express.NextFunction):Promise<express.Response>  => {
+        try {
+            const contributions = await this.dbService.findAllContributions()
+            return res.status(200).send(contributions)
+        } catch (err) {
             next(err)
         }
     }
@@ -20,6 +29,14 @@ class ContributionController extends CrudController implements CrudActions {
             next()
         } else {
             next( new AuthError(ACCESS_CONTROL_ERROR_MESSAGE) )
+        }
+    }
+
+    grantAccess = (req, res, next) => {
+        if(req.user.role === 'admin'){
+            next()
+        }else {
+            next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))
         }
     }
 

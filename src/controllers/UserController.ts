@@ -1,7 +1,6 @@
 import CrudController, {CrudActions} from "./CrudController";
 import express from 'express';
 import {IUserDocument} from "../models/UserModel";
-import {databaseService} from "../services/userServices";
 import ac, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
 import {AuthError} from "../services/errorHandling";
 

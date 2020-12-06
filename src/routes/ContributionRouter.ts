@@ -6,6 +6,10 @@ import {mongoDatabaseService} from "../services/userServices";
 const contributionRouter: Router = Router();
 const contributionController = new ContributionController(mongoDatabaseService)
 
-contributionRouter.post('/', configurePassport(authStrategies.jwt), contributionController.validateContribution, contributionController.store)
+
+contributionRouter.route('/')
+    .all(configurePassport(authStrategies.jwt))
+    .post(contributionController.validateContribution, contributionController.store)
+    .get(contributionController.grantAccess, contributionController.index)
 
 export default contributionRouter;

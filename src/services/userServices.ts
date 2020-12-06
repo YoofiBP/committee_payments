@@ -16,7 +16,9 @@ export interface databaseService {
 
     findAllUsers();
 
-    saveContribution(contributionData: {})
+    saveContribution(contributionData: {});
+
+    findAllContributions();
 }
 
 class MongoDatabaseService implements databaseService {
@@ -72,6 +74,10 @@ class MongoDatabaseService implements databaseService {
     saveContribution(contributionData: {}) {
         const contribution = new ContributionModel(contributionData);
         return contribution.save();
+    }
+
+    findAllContributions() {
+        return ContributionModel.find({})
     }
 }
 

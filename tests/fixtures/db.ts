@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import {UserModel} from "../../src/models/UserModel";
 import jwt from 'jsonwebtoken'
 import {TokenModel} from "../../src/models/EmailTokenModel";
+import {ContributionModel} from "../../src/models/ContributionModel";
 
 const userIdOne = new mongoose.Types.ObjectId();
 const userIdTwo = new mongoose.Types.ObjectId();
@@ -60,4 +61,5 @@ export const setupDatabase =  () => {
 export const tearDownDatabase = async () => {
     await UserModel.deleteMany({});
     await TokenModel.deleteMany({})
+    await ContributionModel.deleteMany({})
 }
