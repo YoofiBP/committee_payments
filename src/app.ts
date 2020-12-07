@@ -37,7 +37,9 @@ app.use(passport.initialize())
 app.use(removeUnfillable)
 app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(routeConfigs.contributions.baseUrl,contributionRouter)
-
 app.use(appErrorHandler);
+app.all('*', (req, res) => {
+    res.status(404).send({message: "Nothing to see here"})
+})
 
 export default app;

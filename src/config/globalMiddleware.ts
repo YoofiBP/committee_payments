@@ -9,8 +9,10 @@ const routeToModel = {
 
 export const removeUnfillable = (req, res, next) => {
     const resourcePath = `/${req.originalUrl.split('/')[1]}`
+    if(!routeToModel[resourcePath]){
+        return next();
+    }
     const ModelTree = routeToModel[resourcePath].printTree()
-
     //remove protected fields from request body
     Object.keys(ModelTree).forEach(key => {
         if(ModelTree[key].hasOwnProperty('protected')){
