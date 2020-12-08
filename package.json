@@ -75,7 +75,7 @@
     "express": "^4.17.1",
     "faker": "^5.1.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.10.18",
+    "mongoose": "^5.11.5",
     "mongoose-delete": "^0.5.3",
     "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.10.0",
