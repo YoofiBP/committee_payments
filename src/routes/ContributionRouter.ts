@@ -6,6 +6,8 @@ import {mongoDatabaseService} from "../services/userServices";
 const contributionRouter: Router = Router();
 const contributionController = new ContributionController(mongoDatabaseService)
 
+contributionRouter.post('/paystack', contributionController.paystack)
+contributionRouter.get('/verify', contributionController.verifyPayment)
 
 contributionRouter.route('/')
     .all(configurePassport(authStrategies.jwt))

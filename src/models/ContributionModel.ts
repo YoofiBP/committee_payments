@@ -1,12 +1,13 @@
-//TODO: Test contribution model
 import {mongoose} from '../config/mongoosePlugins'
 import { Document, Model, Schema, model, Types} from "mongoose";
 import {UserModel} from "./UserModel";
-import {errorMessageParser, mongooseValidationErrorHandler} from "../services/errorHandling";
+import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
 interface IContribution  {
     contributorId: Types.ObjectId;
     amount: number,
+    paymentGatewayReference: string,
+    email?: string
 }
 
 export interface IContributionDocument extends IContribution, Document {
@@ -26,6 +27,15 @@ export const ContributionSchema = new mongoose.Schema({
     amount: {
         type: Number,
         required: true
+    },
+    paymentGatewayReference: {
+        type: String,
+        required: true,
+        protected: true
+    }
+    ,
+    email: {
+        type: String
     },
     createdAt: {
         type: Date,
