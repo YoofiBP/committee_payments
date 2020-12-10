@@ -7,6 +7,7 @@ import userRouter from './routes/UserRouter';
 import bodyParser from "body-parser";
 import {DB, mongoDatabase} from './db/Database';
 import cors from 'cors';
+import helmet from "helmet";
 
 import {appErrorHandler} from "./services/errorHandling";
 import passport from "passport"
@@ -29,6 +30,7 @@ db.connect();
 
 const app = express();
 
+app.use(helmet())
 app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));

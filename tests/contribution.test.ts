@@ -6,6 +6,7 @@ import {setupDatabase, userOne, userTwo, userThree, tearDownDatabase} from "./fi
 import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";
 import {UserModel} from "../src/models/UserModel";
+import cryptoRandomString from "crypto-random-string";
 
 jest.mock("../src/services/accountVerification", () => ({
     ...jest.requireActual("../src/services/accountVerification"),
@@ -24,15 +25,17 @@ describe('Contribution Resource tests', () => {
 
     const sampleContribution = {
         contributorId: userOne._id,
-        amount: 50
+        amount: 50,
+        paymentGatewayReference: "x2fdhpkj0q"
     }
 
     describe('Contribution Creation tests', () => {
         const makeContribution = async () => {
+            const randomPaymentReference = cryptoRandomString({length:10, type:"url-safe"})
             return supertest(app)
                 .post(contributionResourceRoute)
                 .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .send(sampleContribution)
+                .send({...sampleContribution, paymentGatewayReference: randomPaymentReference})
         }
 
         it('Should create contribution successfully and return it in response body', async () => {

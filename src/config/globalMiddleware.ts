@@ -21,7 +21,6 @@ export const removeUnfillable = (req, res, next) => {
             }
         }
     });
-
     //remove unexpected fields from request body
     Object.keys(req.body).forEach(key => {
         if(!ModelTree[key]){

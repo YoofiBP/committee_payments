@@ -1,3 +1,14 @@
-export const PAYSTACK_INTIALIZE_TRANSACTION_ENDPOINT = `https://api.paystack.co/transaction/initialize`
-export const PAYSTACK_VERIFY_TRANSACTION_ENDPOINT = `https://api.paystack.co/transaction/verify/`
+import axios from 'axios'
+
+const PAYSTACK_BASE_URL = `https://api.paystack.co/transaction/`
+export const PAYSTACK_INTIALIZE = `initialize`
+export const PAYSTACK_VERIFY = `verify`
 export const PAYSTACK_SUCCESS_STATUS = 'success';
+
+export const payStackAxios = axios.create({
+    baseURL: PAYSTACK_BASE_URL,
+    headers: {
+        'Content-Type':'application/json',
+        'Authorization': `Bearer ${process.env.PAYSTACK_TEST_SECRET}`
+    }
+})

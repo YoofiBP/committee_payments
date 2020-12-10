@@ -6,13 +6,27 @@ interface ParsedBody {
     [index:string]: string;
 }
 
-export class AuthError extends Error {
-    private statusCode:number;
+abstract class CustomError extends Error {
+    protected statusCode:number;
 
     constructor(message:string) {
         super();
-        this.message = message;
+        this.message = message
+    }
+}
+
+export class AuthError extends CustomError {
+
+    constructor(message:string) {
+        super(message);
         this.statusCode = 401
+    }
+}
+
+export class DuplicateContributionError extends CustomError {
+    constructor(message:string) {
+        super(message);
+        this.statusCode = 400
     }
 }
 

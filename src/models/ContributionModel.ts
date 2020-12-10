@@ -3,10 +3,10 @@ import { Document, Model, Schema, model, Types} from "mongoose";
 import {UserModel} from "./UserModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
-interface IContribution  {
+export interface IContribution  {
     contributorId: Types.ObjectId;
     amount: number,
-    paymentGatewayReference: string,
+    paymentGatewayReference?: string,
     email?: string
 }
 
@@ -31,7 +31,6 @@ export const ContributionSchema = new mongoose.Schema({
     paymentGatewayReference: {
         type: String,
         required: true,
-        protected: true
     }
     ,
     email: {

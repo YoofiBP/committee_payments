@@ -1,7 +1,7 @@
 import {TokenModel} from "../models/EmailTokenModel";
-import {AuthError} from "./errorHandling";
-import {IUserDocument, UserModel} from "../models/UserModel";
-import {IContributionDocument, ContributionModel} from "../models/ContributionModel";
+import {AuthError, DuplicateContributionError} from "./errorHandling";
+import {IUser, IUserDocument, UserModel} from "../models/UserModel";
+import {IContributionDocument, ContributionModel, IContribution} from "../models/ContributionModel";
 
 export interface databaseService {
     findTokenAndVerifyUser(tokenCode: string);
@@ -44,7 +44,7 @@ class MongoDatabaseService implements databaseService {
         }
     }
 
-    saveUser(userData: {}) {
+    saveUser(userData: IUser) {
         const user = new UserModel(userData);
         return user.save();
     }
@@ -71,7 +71,12 @@ class MongoDatabaseService implements databaseService {
         return UserModel.find({})
     }
 
-    saveContribution(contributionData: {}) {
+    async saveContribution(contributionData: IContribution) {
+        //check if reference is present before saving
+        const contributionInDatabase = await ContributionModel.findOne({paymentGatewayReference:contributionData.paymentGatewayReference})
+        if(contributionInDatabase){
+            throw new DuplicateContributionError('Contribution already recorded')
+        }
         const contribution = new ContributionModel(contributionData);
         return contribution.save();
     }
