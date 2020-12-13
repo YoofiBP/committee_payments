@@ -11,6 +11,7 @@ import {
     payStackAxios,
     PAYSTACK_SUCCESS_STATUS
 } from "../config/paystackConfig";
+import {IUserDocument} from "../models/UserModel";
 
 class ContributionController extends CrudController implements CrudActions {
 
@@ -21,17 +22,16 @@ class ContributionController extends CrudController implements CrudActions {
                 amount,
                 email
             })
-            const {authorization_url} = paystackResponse.data.data;
-            res.send({authorization_url})
+            const {authorization_url, reference} = paystackResponse.data.data;
+            await this.dbService.createVerificationToken((req.user as IUserDocument)._id, reference)
+            res.status(200).send({authorization_url})
         } catch (err) {
-            console.log(err)
             next(err)
         }
     }
 
     verifyPayment = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         const {
-            trxref: transaction_reference,
             reference: reference_code
         } = req.query;
 
@@ -39,8 +39,9 @@ class ContributionController extends CrudController implements CrudActions {
             const response = await payStackAxios.get(`${PAYSTACK_VERIFY}/${reference_code}`)
             const {data: {data: {status, amount, reference}}} = response;
             if (status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
-                const contribution = await this.dbService.saveContribution({
-                    contributorId: '5fccfb61a3100d23df96cda4',
+                const contributorId = await this.dbService.getUserIdFromAndDeletePaymentToken(reference)
+                 await this.dbService.saveContribution({
+                    contributorId ,
                     amount: +amount / 100,
                     paymentGatewayReference: reference
                 })

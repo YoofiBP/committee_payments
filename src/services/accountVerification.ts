@@ -3,7 +3,7 @@ dotenv.config();
 
 import {MailService} from '@sendgrid/mail'
 import {IUserDocument} from "../models/UserModel";
-import {ITokenDocument, TokenModel} from "../models/EmailTokenModel";
+import {ITokenDocument, TokenModel} from "../models/VerificationTokenModel";
 import {sendGridEmailConfig} from "../config/email";
 
 interface VerifiesUsers {

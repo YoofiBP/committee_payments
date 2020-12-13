@@ -1,12 +1,19 @@
 import mongoose from 'mongoose';
 import {UserModel} from "../../src/models/UserModel";
 import jwt from 'jsonwebtoken'
-import {TokenModel} from "../../src/models/EmailTokenModel";
+import {TokenModel} from "../../src/models/VerificationTokenModel";
 import {ContributionModel} from "../../src/models/ContributionModel";
 
 const userIdOne = new mongoose.Types.ObjectId();
 const userIdTwo = new mongoose.Types.ObjectId();
 const userIdThree = new mongoose.Types.ObjectId();
+
+const sampleContribution = {
+    _id: new mongoose.Types.ObjectId(),
+    contributorId: userIdOne,
+    amount: 50,
+    paymentGatewayReference: "x2fdhpkj0q"
+}
 
 //admin and verified
 export const userOne = {
@@ -19,8 +26,9 @@ export const userOne = {
         token: jwt.sign({ id: userIdOne }, process.env.SECRET),
     }],
     isVerified: true,
-    role: 'admin'
+    role: 'admin',
 }
+
 
 //admin but not verified
 export const userTwo = {
@@ -53,6 +61,7 @@ export const userThree = {
 export const setupDatabase =  () => {
     return UserModel.init().then(async () => {
         await UserModel.create(userOne)
+        await ContributionModel.create(sampleContribution) //seed with one contribution
         await UserModel.create(userTwo)
         await UserModel.create(userThree)
     })

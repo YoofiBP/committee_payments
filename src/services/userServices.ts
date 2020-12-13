@@ -1,7 +1,8 @@
-import {TokenModel} from "../models/EmailTokenModel";
+import {TokenModel} from "../models/VerificationTokenModel";
 import {AuthError, DuplicateContributionError} from "./errorHandling";
 import {IUser, IUserDocument, UserModel} from "../models/UserModel";
-import {IContributionDocument, ContributionModel, IContribution} from "../models/ContributionModel";
+import {ContributionModel, IContribution} from "../models/ContributionModel";
+
 
 export interface databaseService {
     findTokenAndVerifyUser(tokenCode: string);
@@ -19,21 +20,21 @@ export interface databaseService {
     saveContribution(contributionData: {});
 
     findAllContributions();
+
+    createVerificationToken(userId, paymentReference);
+
+    getUserIdFromAndDeletePaymentToken(paymentReference: string): string | Promise<string>
 }
 
 class MongoDatabaseService implements databaseService {
 
     async findTokenAndVerifyUser(tokenCode: string) {
-        try {
-            const token = await TokenModel.findOne({code: tokenCode});
-            if (!token) {
-                throw new AuthError('Token does not exist')
-            }
-            await UserModel.findByIdAndUpdate(token.userId, {isVerified: true});
-            await TokenModel.deleteMany({code: token.code})
-        } catch (err) {
-            throw err
+        const token = await TokenModel.findOne({code: tokenCode});
+        if (!token) {
+            throw new AuthError('Token does not exist')
         }
+        await UserModel.findByIdAndUpdate(token.userId, {isVerified: true});
+        await TokenModel.deleteMany({code: token.code})
     }
 
     async findUserById(userId: string) {
@@ -60,7 +61,7 @@ class MongoDatabaseService implements databaseService {
     async findUserByIdAndUpdate(userId: string, data: {}) {
         const user = await UserModel.findById(userId)
         Object.keys(data).forEach(key => {
-            if(user[key]){
+            if (user[key]) {
                 user[key] = data[key]
             }
         })
@@ -73,8 +74,8 @@ class MongoDatabaseService implements databaseService {
 
     async saveContribution(contributionData: IContribution) {
         //check if reference is present before saving
-        const contributionInDatabase = await ContributionModel.findOne({paymentGatewayReference:contributionData.paymentGatewayReference})
-        if(contributionInDatabase){
+        const contributionInDatabase = await ContributionModel.findOne({paymentGatewayReference: contributionData.paymentGatewayReference})
+        if (contributionInDatabase) {
             throw new DuplicateContributionError('Contribution already recorded')
         }
         const contribution = new ContributionModel(contributionData);
@@ -83,6 +84,24 @@ class MongoDatabaseService implements databaseService {
 
     findAllContributions() {
         return ContributionModel.find({})
+    }
+
+    async createVerificationToken(userId, paymentReference) {
+        const verificationToken = await new TokenModel({
+            userId,
+            code: paymentReference
+        })
+        verificationToken.save();
+    }
+
+    async getUserIdFromAndDeletePaymentToken(paymentReference: string) {
+        const token = await TokenModel.findOne({code: paymentReference})
+        if (!token) {
+            throw new DuplicateContributionError('Contribution already recorded')
+        }
+        const userId = token.userId.toString();
+        await TokenModel.deleteMany({code: token.code})
+        return userId;
     }
 }
 

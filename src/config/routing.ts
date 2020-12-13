@@ -11,5 +11,7 @@ export const routeConfigs = {
     },
     contributions: {
         baseUrl: '/contributions',
+        makeContribution: '/contribute',
+        verifyContribution: '/verify'
     }
 }

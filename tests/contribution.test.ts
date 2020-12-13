@@ -1,4 +1,6 @@
+//use webhooks instead of callbacks (or both)
 import dotenv from 'dotenv';
+
 dotenv.config({path: './test.env'})
 import supertest from "supertest";
 import app from "../src/app";
@@ -7,6 +9,15 @@ import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";
 import {UserModel} from "../src/models/UserModel";
 import cryptoRandomString from "crypto-random-string";
+import moxios from 'moxios'
+import {
+    PAYSTACK_INTIALIZE,
+    PAYSTACK_SUCCESS_STATUS,
+    PAYSTACK_VERIFY,
+    payStackAxios
+} from "../src/config/paystackConfig";
+import {TokenModel} from "../src/models/VerificationTokenModel";
+import {mongoDatabaseService} from "../src/services/userServices";
 
 jest.mock("../src/services/accountVerification", () => ({
     ...jest.requireActual("../src/services/accountVerification"),
@@ -17,11 +28,19 @@ jest.mock("../src/services/accountVerification", () => ({
 
 describe('Contribution Resource tests', () => {
 
-    beforeEach(setupDatabase)
+    beforeEach(async () => {
+        await setupDatabase();
+        moxios.install(payStackAxios);
+    })
 
-    afterEach(tearDownDatabase)
+    afterEach(async () => {
+        await tearDownDatabase();
+        moxios.uninstall(payStackAxios)
+    })
 
-    const contributionResourceRoute = `${routeConfigs.contributions.baseUrl}/`
+    const contributionResourceRoute = `${routeConfigs.contributions.baseUrl}`
+    const makeContributionRoute = `${contributionResourceRoute}${routeConfigs.contributions.makeContribution}`;
+    const verifyContributionRoute = `${contributionResourceRoute}${routeConfigs.contributions.verifyContribution}`
 
     const sampleContribution = {
         contributorId: userOne._id,
@@ -29,49 +48,167 @@ describe('Contribution Resource tests', () => {
         paymentGatewayReference: "x2fdhpkj0q"
     }
 
+    const sampleContributionDetails = {
+        email: 'joseph.brown-pobee@ashesi.edu.gh',
+        amount: 50
+    }
+
     describe('Contribution Creation tests', () => {
         const makeContribution = async () => {
-            const randomPaymentReference = cryptoRandomString({length:10, type:"url-safe"})
+            const randomPaymentReference = cryptoRandomString({length: 10, type: "url-safe"})
             return supertest(app)
                 .post(contributionResourceRoute)
                 .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
                 .send({...sampleContribution, paymentGatewayReference: randomPaymentReference})
         }
 
-        it('Should create contribution successfully and return it in response body', async () => {
-            const response = await makeContribution();
-
-            expect(response.status).toEqual(201)
-            expect(response.body).toMatchObject({
-                contributorId:sampleContribution.contributorId.toString(),
-                amount: sampleContribution.amount
+        const stubRequest = (route, status, response) => {
+            moxios.stubRequest(route, {
+                status,
+                response: response
             })
-            const contributions = await ContributionModel.find({contributorId: userOne._id});
-            expect(contributions).toHaveLength(1)
-            expect(contributions[0].amount).toEqual(50)
+        }
+
+
+        it('Should call paystack API endpoint and return authorization URL when successful', async (done) => {
+            const expectedResponseBody = {data: {authorization_url: "test_url", reference: "39djsms92"}}
+
+            stubRequest(PAYSTACK_INTIALIZE, 200, expectedResponseBody)
+
+            const response = await supertest(app)
+                .post(makeContributionRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .send(sampleContributionDetails)
+
+            moxios.wait(function () {
+                expect(response.status).toEqual(200);
+                expect(response.body).toEqual(expect.objectContaining({
+                    authorization_url: expect.any(String)
+                }))
+                done()
+            })
         })
 
-        it('Should update contributors total contributed amount', async () => {
-            let user = await UserModel.findById(userOne._id);
-            expect(user.totalContribution).toEqual(0)
-            await makeContribution()
-            user = await UserModel.findById(userOne._id);
-            expect(user.totalContribution).toEqual(50)
-            await makeContribution()
-            user = await UserModel.findById(userOne._id);
-            expect(user.totalContribution).toEqual(100)
+        it('Should create verification token when payment is successful', async (done) => {
+            const expectedResponseBody = {data: {authorization_url: "test_url", reference: "39djsms92"}}
+
+            stubRequest(PAYSTACK_INTIALIZE, 200, expectedResponseBody)
+
+            await supertest(app)
+                .post(makeContributionRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .send(sampleContributionDetails)
+
+            moxios.wait(async function () {
+                const token = await TokenModel.find({code: expectedResponseBody.data.reference})
+                expect(token).toHaveLength(1)
+                done()
+            })
         })
 
-        it('Should update contributors array of contributions', async () => {
-            let user = await UserModel.findById(userOne._id);
-            expect(user.contributions).toHaveLength(0)
-            await makeContribution()
-            user = await UserModel.findById(userOne._id);
-            expect(user.contributions).toHaveLength(1)
-            await makeContribution()
-            user = await UserModel.findById(userOne._id);
-            expect(user.contributions).toHaveLength(2)
+        it('Should pass error to error handler when call to payStack API fails', async (done) => {
+            const expectedResponseBody = {
+                message: "An error occurred"
+            }
+
+            stubRequest(PAYSTACK_INTIALIZE, 500, expectedResponseBody)
+
+            const response = await supertest(app)
+                .post(makeContributionRoute)
+                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+                .send(sampleContributionDetails)
+
+            moxios.wait(function () {
+                expect(response.status).toEqual(500)
+                done()
+            })
+
         })
+
+        describe('Contribution Verification', () => {
+            const sampleReferenceCode = 'abcd1234'
+            const expectedResponse = {
+                data: {
+                    status: PAYSTACK_SUCCESS_STATUS,
+                    amount: 5000,
+                    reference: 'sampleReference'
+                }
+            }
+
+            beforeEach(async () => {
+                await mongoDatabaseService.createVerificationToken(userOne._id, expectedResponse.data.reference)
+            })
+
+            afterEach(async () => {
+                await TokenModel.deleteMany({})
+            })
+
+            const makeContribution = () => {
+                stubRequest(`${PAYSTACK_VERIFY}/${sampleReferenceCode}`, 200, expectedResponse);
+                return supertest(app)
+                    .get(`${verifyContributionRoute}?reference=${sampleReferenceCode}`)
+                    .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
+            }
+
+            it('Should redirect user successfully and create contribution when payment is verified successfully', async (done) => {
+                const response = await makeContribution()
+
+                moxios.wait(async function () {
+                    expect(response.status).toEqual(301)
+
+                    const contributionInDatabase = await ContributionModel.find({paymentGatewayReference: expectedResponse.data.reference})
+                    expect(contributionInDatabase).toHaveLength(1)
+                    expect(contributionInDatabase[0].amount).toEqual(expectedResponse.data.amount / 100)
+                    done()
+                })
+            })
+
+
+            it('Should update contributors total contributed amount', async (done) => {
+                let user = await UserModel.findById(userOne._id);
+                expect(user.totalContribution).toEqual(50)
+
+                await makeContribution();
+
+                moxios.wait(async function () {
+                    user = await UserModel.findById(userOne._id);
+                    expect(user.totalContribution).toEqual(100)
+                    done()
+                })
+            })
+
+            it('Should update contributors array of contributions', async (done) => {
+                let user = await UserModel.findById(userOne._id);
+                expect(user.contributions).toHaveLength(1);
+
+                await makeContribution();
+
+                moxios.wait(async function () {
+                    user = await UserModel.findById(userOne._id);
+                    expect(user.contributions).toHaveLength(2)
+                    done()
+                })
+            })
+
+            it('Should not create duplicate contributions', async (done) => {
+                let contribution = {...sampleContribution, paymentGatewayReference: "sampleReference"}
+                await new ContributionModel(contribution).save()
+
+                const contributionsInDatabase = await ContributionModel.find({paymentGatewayReference: contribution.paymentGatewayReference})
+                expect(contributionsInDatabase).toHaveLength(1)
+
+                const response = await makeContribution()
+
+                moxios.wait(async function () {
+                    expect(response.status).toEqual(400)
+                    const contributionsInDatabase = await ContributionModel.find({paymentGatewayReference: contribution.paymentGatewayReference})
+                    expect(contributionsInDatabase).toHaveLength(1)
+                    done()
+                })
+            })
+
+        })
+
     })
 
     describe("Get contribution route tests", () => {
@@ -82,7 +219,7 @@ describe('Contribution Resource tests', () => {
         ]
         beforeEach(async () => {
             await ContributionModel.create(
-             contributionArray
+                contributionArray
             )
         })
 
@@ -92,7 +229,7 @@ describe('Contribution Resource tests', () => {
                 .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
                 .expect(200)
 
-            expect(response.body.length).toEqual(contributionArray.length)
+            expect(response.body.length).toEqual(contributionArray.length + 1)
 
             const contributionsInDatabase = await ContributionModel.find({})
             expect(response.body.length).toEqual(contributionsInDatabase.length)
@@ -102,7 +239,7 @@ describe('Contribution Resource tests', () => {
     describe('Authorization tests', () => {
         it("Should not allow unauthenticated user to make contribution", async () => {
             await supertest(app)
-                .post(contributionResourceRoute)
+                .post(makeContributionRoute)
                 .send({
                     contributorId: userOne._id,
                     amount: 50,
@@ -112,19 +249,8 @@ describe('Contribution Resource tests', () => {
 
         it('Should not allow unverified user to make contribution', async () => {
             await supertest(app)
-                .post(contributionResourceRoute)
+                .post(makeContributionRoute)
                 .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
-                .send({
-                    contributorId: userTwo._id,
-                    amount: 50,
-                })
-                .expect(401)
-        })
-
-        it('Should not allow authenticated user to make contribution for another user', async () => {
-            await supertest(app)
-                .post(contributionResourceRoute)
-                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
                 .send({
                     contributorId: userTwo._id,
                     amount: 50,

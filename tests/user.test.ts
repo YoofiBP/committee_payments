@@ -7,7 +7,7 @@ import app from '../src/app';
 import {setupDatabase, tearDownDatabase, userOne, userThree, userTwo} from "./fixtures/db";
 import { UserModel} from "../src/models/UserModel";
 import {sendGridEmailVerification} from "../src/services/accountVerification"
-import {TokenModel} from "../src/models/EmailTokenModel";
+import {TokenModel} from "../src/models/VerificationTokenModel";
 import {routeConfigs} from "../src/config/routing";
 
 jest.mock("../src/services/accountVerification", () => ({
