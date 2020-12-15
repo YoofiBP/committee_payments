@@ -13,6 +13,7 @@ import {appErrorHandler} from "./services/errorHandling";
 import passport from "passport"
 import {routeConfigs} from "./config/routing";
 import contributionRouter from "./routes/ContributionRouter";
+import adminRouter from "./routes/AdminRouter";
 import {removeUnfillable} from "./config/globalMiddleware";
 
 
@@ -30,15 +31,16 @@ db.connect();
 
 const app = express();
 
-app.use(helmet())
-app.use(cors())
+app.use(helmet());
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(passport.initialize())
+app.use(passport.initialize());
 
 app.use(removeUnfillable)
 app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(routeConfigs.contributions.baseUrl,contributionRouter)
+app.use(routeConfigs.admin.baseUrl, adminRouter)
 app.use(appErrorHandler);
 app.all('*', (req, res) => {
     res.status(404).send({message: "Nothing to see here"})

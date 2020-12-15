@@ -12,6 +12,7 @@ import {
     PAYSTACK_SUCCESS_STATUS
 } from "../config/paystackConfig";
 import {IUserDocument} from "../models/UserModel";
+import {mongoDatabaseService} from "../services/userServices";
 
 class ContributionController extends CrudController implements CrudActions {
 
@@ -88,7 +89,7 @@ class ContributionController extends CrudController implements CrudActions {
             next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))
         }
     }
-
 }
 
-export default ContributionController;
+const contributionController = new ContributionController(mongoDatabaseService)
+export default contributionController;

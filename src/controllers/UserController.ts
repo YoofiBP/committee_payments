@@ -3,6 +3,7 @@ import express from 'express';
 import {IUserDocument} from "../models/UserModel";
 import ac, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
 import {AuthError} from "../services/errorHandling";
+import {mongoDatabaseService} from "../services/userServices";
 
 class UserController extends CrudController implements CrudActions{
      index = async (req: express.Request, res: express.Response) => {
@@ -91,4 +92,6 @@ class UserController extends CrudController implements CrudActions{
     }
 }
 
-export default UserController;
+const userController = new UserController(mongoDatabaseService)
+
+export default userController;

@@ -285,7 +285,7 @@ describe("User Action Tests", () => {
 
             await supertest(app)
                 .get(`/users/confirmation?token=${token.code}`)
-                .expect(200)
+                .expect(301)
 
             user = await UserModel.findById(user._id)
             expect(user.isVerified).toEqual(true)
@@ -379,16 +379,6 @@ describe("User Action Tests", () => {
                 email: userOne.email
             })
         })
-
-        it("Should get all users successfully", async () => {
-            const response = await supertest(app)
-                .get(userBaseRoute)
-                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .expect(200)
-
-            const numberOfUsersInDb = await UserModel.countDocuments({})
-            expect(response.body.length).toEqual(numberOfUsersInDb)
-        })
     })
 
     describe('Authorization tests',  () => {
@@ -452,26 +442,6 @@ describe("User Action Tests", () => {
         it('Should not allow user to make get request for user profile that is not theirs if not admin', async () => {
             await supertest(app)
                 .get(generateUserResourceRoute(userOne._id))
-                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
-                .expect(401)
-        })
-
-        it('Should not allow user to make get request for all users if not authenticated', async () => {
-            await supertest(app)
-                .get(userBaseRoute)
-                .expect(401)
-        })
-
-        it("Should not allow user to make get request for all users if not verified", async () => {
-            await supertest(app)
-                .get(userBaseRoute)
-                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
-                .expect(401)
-        })
-
-        it('Should not allow user to make get request for all users if not admin', async () => {
-            await supertest(app)
-                .get(userBaseRoute)
                 .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
                 .expect(401)
         })

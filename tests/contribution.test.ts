@@ -1,7 +1,7 @@
 //use webhooks instead of callbacks (or both)
 import dotenv from 'dotenv';
-
 dotenv.config({path: './test.env'})
+
 import supertest from "supertest";
 import app from "../src/app";
 import {setupDatabase, userOne, userTwo, userThree, tearDownDatabase} from "./fixtures/db";
@@ -211,31 +211,6 @@ describe('Contribution Resource tests', () => {
 
     })
 
-    describe("Get contribution route tests", () => {
-        const contributionArray = [
-            sampleContribution,
-            sampleContribution,
-            sampleContribution
-        ]
-        beforeEach(async () => {
-            await ContributionModel.create(
-                contributionArray
-            )
-        })
-
-        it('Should get all contributions', async () => {
-            const response = await supertest(app)
-                .get(contributionResourceRoute)
-                .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
-                .expect(200)
-
-            expect(response.body.length).toEqual(contributionArray.length + 1)
-
-            const contributionsInDatabase = await ContributionModel.find({})
-            expect(response.body.length).toEqual(contributionsInDatabase.length)
-        })
-    })
-
     describe('Authorization tests', () => {
         it("Should not allow unauthenticated user to make contribution", async () => {
             await supertest(app)
@@ -255,26 +230,6 @@ describe('Contribution Resource tests', () => {
                     contributorId: userTwo._id,
                     amount: 50,
                 })
-                .expect(401)
-        })
-
-        it('Should not allow unauthenticated user to get all contributions', async () => {
-            await supertest(app)
-                .get(contributionResourceRoute)
-                .expect(401)
-        })
-
-        it('Should not allow unverified user to get all contributions', async () => {
-            await supertest(app)
-                .get(contributionResourceRoute)
-                .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
-                .expect(401)
-        })
-
-        it('Should not allow non admin user to get all contributions', async () => {
-            await supertest(app)
-                .get(contributionResourceRoute)
-                .set("Authorization", `Bearer ${userThree.tokens[0].token}`)
                 .expect(401)
         })
     })
