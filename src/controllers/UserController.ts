@@ -10,11 +10,11 @@ class UserController extends CrudController implements CrudActions{
         return res.send(users)
     }
 
-     confirm = async (req: express.Request, res: express.Response, next: express.NextFunction):Promise<express.Response> => {
+     confirm = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try{
             const { token: tokenCode } = req.query;
             await  this.dbService.findTokenAndVerifyUser((tokenCode as string))
-            return res.status(200).send("Proceed to Login")
+            return res.redirect(301, process.env.BASE_URL)
         } catch (err) {
             next(err)
         }
