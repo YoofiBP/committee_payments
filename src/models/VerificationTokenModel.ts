@@ -1,3 +1,4 @@
+//create new token model for payment tokens with no TTL
 import {Schema, Document, Model, model} from 'mongoose'
 import cryptoRandomString from "crypto-random-string";
 
@@ -26,11 +27,10 @@ const TokenSchema = new Schema({
         type: String,
         default: () => cryptoRandomString({length:10, type:"url-safe"}),
         required: true
-    }
-    ,
+    },
     createdAt: {
         type: Date,
-        expires: 900000 //15mins
+        expires: 900 //15mins
     }
 },{
     strict: "throw",
