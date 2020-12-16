@@ -22,7 +22,6 @@ faker.locale = 'en_GB';
 describe("User Action Tests", () => {
     const signupRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.signup}`
     const userResourceRoute = `${routeConfigs.users.baseUrl}/${userOne._id}`
-    const userBaseRoute = `${routeConfigs.users.baseUrl}/`
     const loginRoute = `${routeConfigs.users.baseUrl}${routeConfigs.users.login}`
 
     const generateUserResourceRoute = (userId) => `${routeConfigs.users.baseUrl}/${userId}`

@@ -2,6 +2,10 @@
 import mongoose from 'mongoose';
 import {MongoError} from 'mongodb'
 
+export const DUPLICATE_CONTRIBUTION_ERROR_MESSAGE = 'Contribution already recorded'
+export const TOKEN_NOT_FOUND_ERROR_MESSAGE = 'Token does not exist'
+const DUPLICATE_USER_ERROR_MESSAGE= 'User already exists'
+
 interface ParsedBody {
     [index:string]: string;
 }
@@ -53,7 +57,7 @@ export const errorMessageParser = (errorBody: mongoose.Error | MongoError ):{} =
         })
         statusCode = 422;
     } else if ((errorBody as MongoError).code === 11000){
-        return {message: "User already exists", statusCode: 400};
+        return {message: DUPLICATE_USER_ERROR_MESSAGE, statusCode: 400};
     }
     return {message: parsedBody, statusCode};
 }

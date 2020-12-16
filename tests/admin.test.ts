@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({path: './test.env'})
 
-import {sendGridEmailVerification} from "../src/services/accountVerification";
 import {setupDatabase, tearDownDatabase, userOne, userThree, userTwo} from "./fixtures/db";
 import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";

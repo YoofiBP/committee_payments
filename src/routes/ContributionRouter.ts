@@ -7,7 +7,7 @@ import {routeConfigs} from "../config/routing";
 const contributionRouter: Router = Router();
 
 
-contributionRouter.get(routeConfigs.contributions.verifyContribution, contributionController.verifyPayment)
+contributionRouter.get(routeConfigs.contributions.verifyContribution, contributionController.verifyPayment, contributionController.store)
 
 contributionRouter.use(configurePassport(authStrategies.jwt))
 

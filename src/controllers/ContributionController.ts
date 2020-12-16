@@ -2,7 +2,6 @@
 
 import CrudController, {CrudActions} from "./CrudController";
 import express from "express";
-import {IContributionDocument} from "../models/ContributionModel";
 import {AuthError} from "../services/errorHandling";
 import {ACCESS_CONTROL_ERROR_MESSAGE} from "../config/accessControl";
 import {
@@ -38,10 +37,20 @@ class ContributionController extends CrudController implements CrudActions {
 
         try {
             const response = await payStackAxios.get(`${PAYSTACK_VERIFY}/${reference_code}`)
-            const {data: {data: {status, amount, reference}}} = response;
+            req.data = response.data;
+            next()
+        } catch (err) {
+            next(err)
+        }
+
+    }
+
+    store = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const {data: {data: {status, amount, reference}}} = req;
             if (status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
                 const contributorId = await this.dbService.getUserIdFromAndDeletePaymentToken(reference)
-                 await this.dbService.saveContribution({
+                await this.dbService.saveContribution({
                     contributorId ,
                     amount: +amount / 100,
                     paymentGatewayReference: reference
@@ -53,16 +62,6 @@ class ContributionController extends CrudController implements CrudActions {
         } catch (err) {
             next(err)
         }
-
-    }
-
-    store = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> => {
-        try {
-            const contribution: IContributionDocument = await this.dbService.saveContribution(req.body);
-            return res.status(201).send(contribution)
-        } catch (err) {
-            next(err)
-        }
     }
 
     index = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> => {
@@ -71,14 +70,6 @@ class ContributionController extends CrudController implements CrudActions {
             return res.status(200).send(contributions)
         } catch (err) {
             next(err)
-        }
-    }
-
-    validateContribution = (req, res, next) => {
-        if (req.user._id.toString() === req.body.contributorId) {
-            next()
-        } else {
-            next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))
         }
     }
 

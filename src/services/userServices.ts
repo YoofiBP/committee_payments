@@ -1,5 +1,10 @@
 import {TokenModel} from "../models/VerificationTokenModel";
-import {AuthError, DuplicateContributionError} from "./errorHandling";
+import {
+    AuthError,
+    DUPLICATE_CONTRIBUTION_ERROR_MESSAGE,
+    DuplicateContributionError,
+    TOKEN_NOT_FOUND_ERROR_MESSAGE
+} from "./errorHandling";
 import {IUser, IUserDocument, UserModel} from "../models/UserModel";
 import {ContributionModel, IContribution} from "../models/ContributionModel";
 
@@ -31,7 +36,7 @@ class MongoDatabaseService implements databaseService {
     async findTokenAndVerifyUser(tokenCode: string) {
         const token = await TokenModel.findOne({code: tokenCode});
         if (!token) {
-            throw new AuthError('Token does not exist')
+            throw new AuthError(TOKEN_NOT_FOUND_ERROR_MESSAGE)
         }
         await UserModel.findByIdAndUpdate(token.userId, {isVerified: true});
         await TokenModel.deleteMany({code: token.code})
@@ -76,7 +81,7 @@ class MongoDatabaseService implements databaseService {
         //check if reference is present before saving
         const contributionInDatabase = await ContributionModel.findOne({paymentGatewayReference: contributionData.paymentGatewayReference})
         if (contributionInDatabase) {
-            throw new DuplicateContributionError('Contribution already recorded')
+            throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
         }
         const contribution = new ContributionModel(contributionData);
         return contribution.save();
@@ -97,7 +102,7 @@ class MongoDatabaseService implements databaseService {
     async getUserIdFromAndDeletePaymentToken(paymentReference: string) {
         const token = await TokenModel.findOne({code: paymentReference})
         if (!token) {
-            throw new DuplicateContributionError('Contribution already recorded')
+            throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
         }
         const userId = token.userId.toString();
         await TokenModel.deleteMany({code: token.code})
