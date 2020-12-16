@@ -9,6 +9,9 @@ export const routeConfigs = {
         login: '/login',
         signup: '/signup'
     },
+    events: {
+        baseUrl: '/events'
+    },
     contributions: {
         baseUrl: '/contributions',
         makeContribution: '/contribute',

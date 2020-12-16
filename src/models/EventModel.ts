@@ -1,6 +1,7 @@
 import {mongoose} from '../config/mongoosePlugins';
 import { Document, model, Model} from "mongoose";
 import mongoose_delete from "mongoose-delete";
+import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
 export interface IEvent {
     name: string;
@@ -55,6 +56,8 @@ const EventSchema = new mongoose.Schema({
     strict: "throw",
     timestamps: true
 })
+
+EventSchema.post('save', mongooseValidationErrorHandler())
 
 EventSchema.plugin(mongoose_delete, {deletedAt: true, overrideMethods: 'all'})
 

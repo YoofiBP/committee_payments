@@ -1,7 +1,6 @@
 //Set up CI on heroku and experiment with CD
 
 import dotenv from 'dotenv';
-dotenv.config();
 import express from "express";
 import userRouter from './routes/UserRouter';
 import bodyParser from "body-parser";
@@ -15,6 +14,10 @@ import {routeConfigs} from "./config/routing";
 import contributionRouter from "./routes/ContributionRouter";
 import adminRouter from "./routes/AdminRouter";
 import {removeUnfillable} from "./config/globalMiddleware";
+import {authStrategies, configurePassport} from "./config/auth";
+import eventController from "./controllers/EventController";
+
+dotenv.config();
 
 
 export const db:DB = mongoDatabase;
@@ -41,6 +44,8 @@ app.use(removeUnfillable)
 app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(routeConfigs.contributions.baseUrl,contributionRouter)
 app.use(routeConfigs.admin.baseUrl, adminRouter)
+app.get(routeConfigs.events.baseUrl, configurePassport(authStrategies.jwt), eventController.index)
+
 app.use(appErrorHandler);
 app.all('*', (req, res) => {
     res.status(404).send({message: "Nothing to see here"})

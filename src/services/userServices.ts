@@ -8,7 +8,7 @@ import {
 import {IUser, IUserDocument, UserModel} from "../models/UserModel";
 import {ContributionModel, IContribution} from "../models/ContributionModel";
 import {PaymentTokenModel} from "../models/PaymentTokenModel";
-
+import {EventModel} from "../models/EventModel";
 
 export interface databaseService {
     findTokenAndVerifyUser(tokenCode: string);
@@ -30,6 +30,14 @@ export interface databaseService {
     createVerificationToken(userId, paymentReference, eventId);
 
     getUserAndEventIdFromPaymentToken(paymentReference: string): {userId: string; eventId:string} | Promise<{userId: string; eventId:string}>
+
+    saveEvent(eventData:{})
+
+    findEventById(eventId: string)
+
+    findEventByIdAndUpdate(eventId: string, data:{})
+
+    findAllEvents();
 }
 
 class MongoDatabaseService implements databaseService {
@@ -109,6 +117,29 @@ class MongoDatabaseService implements databaseService {
         const userId = token.userId.toString();
         const eventId = token.eventId.toString();
         return {userId, eventId};
+    }
+
+    saveEvent(eventData: {}) {
+        const event = new EventModel(eventData);
+        return event.save()
+    }
+
+    findEventById(eventId: string) {
+        return EventModel.findById(eventId)
+    }
+
+    async findEventByIdAndUpdate(eventId: string, data: {}) {
+        const event = await EventModel.findById(eventId);
+        Object.keys(data).forEach(key => {
+            if (event[key]) {
+                event[key] = data[key]
+            }
+        })
+        return event.save()
+    }
+
+    findAllEvents() {
+        return EventModel.find({})
     }
 }
 
