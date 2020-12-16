@@ -4,11 +4,10 @@ dotenv.config({path: './test.env'})
 
 import supertest from "supertest";
 import app from "../src/app";
-import {setupDatabase, userOne, userTwo, userThree, tearDownDatabase, eventOne} from "./fixtures/db";
+import {setupDatabase, userOne, userTwo, tearDownDatabase, eventOne} from "./fixtures/db";
 import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";
 import {UserModel} from "../src/models/UserModel";
-import cryptoRandomString from "crypto-random-string";
 import moxios from 'moxios'
 import {
     PAYSTACK_INTIALIZE,
@@ -56,12 +55,11 @@ describe('Contribution Resource tests', () => {
     }
 
     describe('Contribution Creation tests', () => {
-        const makeContribution = async () => {
-            const randomPaymentReference = cryptoRandomString({length: 10, type: "url-safe"})
+        const makeContribution = () => {
             return supertest(app)
-                .post(contributionResourceRoute)
+                .post(makeContributionRoute)
                 .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .send({...sampleContribution, paymentGatewayReference: randomPaymentReference})
+                .send(sampleContributionDetails)
         }
 
         const stubRequest = (route, status, response) => {
@@ -77,10 +75,7 @@ describe('Contribution Resource tests', () => {
 
             stubRequest(PAYSTACK_INTIALIZE, 200, expectedResponseBody)
 
-            const response = await supertest(app)
-                .post(makeContributionRoute)
-                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .send(sampleContributionDetails)
+            const response = await makeContribution()
 
             moxios.wait(function () {
                 expect(response.status).toEqual(200);
@@ -96,10 +91,7 @@ describe('Contribution Resource tests', () => {
 
             stubRequest(PAYSTACK_INTIALIZE, 200, expectedResponseBody)
 
-            await supertest(app)
-                .post(makeContributionRoute)
-                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .send(sampleContributionDetails)
+            await makeContribution()
 
             moxios.wait(async function () {
                 const token = await PaymentTokenModel.find({paymentReference: expectedResponseBody.data.reference})
@@ -115,10 +107,7 @@ describe('Contribution Resource tests', () => {
 
             stubRequest(PAYSTACK_INTIALIZE, 500, expectedResponseBody)
 
-            const response = await supertest(app)
-                .post(makeContributionRoute)
-                .set("Authorization", `Bearer ${userOne.tokens[0].token}`)
-                .send(sampleContributionDetails)
+            const response = await makeContribution()
 
             moxios.wait(function () {
                 expect(response.status).toEqual(500)
