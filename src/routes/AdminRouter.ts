@@ -7,7 +7,7 @@ import userController from "../controllers/UserController";
 const adminRouter: Router = Router();
 
 adminRouter.use(configurePassport(authStrategies.jwt));
-adminRouter.use(contributionController.grantAccess);
+adminRouter.use(userController.grantAccess('readAny','profile'));
 
 adminRouter.get(routeConfigs.admin.getAllContributions, contributionController.index);
 adminRouter.get(routeConfigs.admin.getAllUsers, userController.index)

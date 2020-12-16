@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({path: './test.env'})
 
 import {setupDatabase, tearDownDatabase, userOne, userThree, userTwo} from "./fixtures/db";
+import mongoose from 'mongoose'
 import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";
 import supertest from "supertest";
@@ -30,7 +31,8 @@ describe('Admin Resource tests', () => {
     const sampleContribution = {
         contributorId: userOne._id,
         amount: 50,
-        paymentGatewayReference: "x2fdhpkj0q"
+        paymentGatewayReference: "x2fdhpkj0q",
+        eventId: new mongoose.Types.ObjectId()
     }
 
     describe('Contributions Resource', () => {

@@ -7,6 +7,7 @@ import {
 } from "./errorHandling";
 import {IUser, IUserDocument, UserModel} from "../models/UserModel";
 import {ContributionModel, IContribution} from "../models/ContributionModel";
+import {PaymentTokenModel} from "../models/PaymentTokenModel";
 
 
 export interface databaseService {
@@ -26,9 +27,9 @@ export interface databaseService {
 
     findAllContributions();
 
-    createVerificationToken(userId, paymentReference);
+    createVerificationToken(userId, paymentReference, eventId);
 
-    getUserIdFromAndDeletePaymentToken(paymentReference: string): string | Promise<string>
+    getUserAndEventIdFromPaymentToken(paymentReference: string): {userId: string; eventId:string} | Promise<{userId: string; eventId:string}>
 }
 
 class MongoDatabaseService implements databaseService {
@@ -91,22 +92,23 @@ class MongoDatabaseService implements databaseService {
         return ContributionModel.find({})
     }
 
-    async createVerificationToken(userId, paymentReference) {
-        const verificationToken = await new TokenModel({
+    async createVerificationToken(userId, paymentReference, eventId) {
+        const verificationToken = await new PaymentTokenModel({
             userId,
-            code: paymentReference
+            paymentReference: paymentReference,
+            eventId
         })
         verificationToken.save();
     }
 
-    async getUserIdFromAndDeletePaymentToken(paymentReference: string) {
-        const token = await TokenModel.findOne({code: paymentReference})
+    async getUserAndEventIdFromPaymentToken(paymentReference: string) {
+        const token = await PaymentTokenModel.findOne({paymentReference})
         if (!token) {
             throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
         }
         const userId = token.userId.toString();
-        await TokenModel.deleteMany({code: token.code})
-        return userId;
+        const eventId = token.eventId.toString();
+        return {userId, eventId};
     }
 }
 

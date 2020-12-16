@@ -3,16 +3,28 @@ import {UserModel} from "../../src/models/UserModel";
 import jwt from 'jsonwebtoken'
 import {TokenModel} from "../../src/models/VerificationTokenModel";
 import {ContributionModel} from "../../src/models/ContributionModel";
+import {EventModel} from "../../src/models/EventModel";
+import {PaymentTokenModel} from "../../src/models/PaymentTokenModel";
 
 const userIdOne = new mongoose.Types.ObjectId();
 const userIdTwo = new mongoose.Types.ObjectId();
 const userIdThree = new mongoose.Types.ObjectId();
 
+const eventIdOne = new mongoose.Types.ObjectId()
+
+export const eventOne = {
+    _id: eventIdOne,
+    name: "Wedding",
+    venue: "Ashesi",
+    dateTime: new Date(),
+}
+
 const sampleContribution = {
     _id: new mongoose.Types.ObjectId(),
     contributorId: userIdOne,
     amount: 50,
-    paymentGatewayReference: "x2fdhpkj0q"
+    paymentGatewayReference: "x2fdhpkj0q",
+    eventId: eventIdOne
 }
 
 //admin and verified
@@ -61,6 +73,7 @@ export const userThree = {
 export const setupDatabase =  () => {
     return UserModel.init().then(async () => {
         await UserModel.create(userOne)
+        await EventModel.create(eventOne)
         await ContributionModel.create(sampleContribution) //seed with one contribution
         await UserModel.create(userTwo)
         await UserModel.create(userThree)
@@ -71,4 +84,6 @@ export const tearDownDatabase = async () => {
     await UserModel.deleteMany({});
     await TokenModel.deleteMany({})
     await ContributionModel.deleteMany({})
+    await EventModel.deleteMany({})
+    await PaymentTokenModel.deleteMany({})
 }

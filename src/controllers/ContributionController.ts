@@ -2,8 +2,6 @@
 
 import CrudController, {CrudActions} from "./CrudController";
 import express from "express";
-import {AuthError} from "../services/errorHandling";
-import {ACCESS_CONTROL_ERROR_MESSAGE} from "../config/accessControl";
 import {
     PAYSTACK_INTIALIZE,
     PAYSTACK_VERIFY,
@@ -16,14 +14,14 @@ import {mongoDatabaseService} from "../services/userServices";
 class ContributionController extends CrudController implements CrudActions {
 
     payWithPaystack = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const {email, amount} = req.body
+        const {email, amount, eventId} = req.body
         try {
             const paystackResponse = await payStackAxios.post(PAYSTACK_INTIALIZE, {
                 amount,
                 email
             })
             const {authorization_url, reference} = paystackResponse.data.data;
-            await this.dbService.createVerificationToken((req.user as IUserDocument)._id, reference)
+            await this.dbService.createVerificationToken((req.user as IUserDocument)._id, reference, eventId)
             res.status(200).send({authorization_url})
         } catch (err) {
             next(err)
@@ -49,11 +47,12 @@ class ContributionController extends CrudController implements CrudActions {
         try {
             const {data: {data: {status, amount, reference}}} = req;
             if (status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
-                const contributorId = await this.dbService.getUserIdFromAndDeletePaymentToken(reference)
+                const {userId:contributorId, eventId} = await this.dbService.getUserAndEventIdFromPaymentToken(reference)
                 await this.dbService.saveContribution({
                     contributorId ,
                     amount: +amount / 100,
-                    paymentGatewayReference: reference
+                    paymentGatewayReference: reference,
+                    eventId
                 })
                 return res.redirect(301, process.env.BASE_URL)
             } else {
@@ -70,14 +69,6 @@ class ContributionController extends CrudController implements CrudActions {
             return res.status(200).send(contributions)
         } catch (err) {
             next(err)
-        }
-    }
-
-    grantAccess = (req, res, next) => {
-        if (req.user.role === 'admin') {
-            next()
-        } else {
-            next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))
         }
     }
 }

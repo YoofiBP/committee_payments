@@ -1,4 +1,3 @@
-//TODO: Work on Admin route for admin only actions
 import {Router} from "express";
 import contributionController from "../controllers/ContributionController";
 import {authStrategies, configurePassport} from "../config/auth";

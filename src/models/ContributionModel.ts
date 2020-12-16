@@ -1,13 +1,14 @@
 import {mongoose} from '../config/mongoosePlugins'
-import { Document, Model, Schema, model, Types} from "mongoose";
+import { Document, Model, model, Types} from "mongoose";
 import {UserModel} from "./UserModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
 export interface IContribution  {
     contributorId: Types.ObjectId;
-    amount: number,
-    paymentGatewayReference?: string,
-    email?: string
+    amount: number;
+    paymentGatewayReference?: string;
+    email?: string;
+    eventId: Types.ObjectId
 }
 
 export interface IContributionDocument extends IContribution, Document {
@@ -20,7 +21,7 @@ export interface IContributionModel extends Model<IContributionDocument> {
 
 export const ContributionSchema = new mongoose.Schema({
     contributorId: {
-        type: Schema.Types.ObjectId,
+        type: Types.ObjectId,
         ref: 'User',
         required: true
     },
@@ -31,6 +32,12 @@ export const ContributionSchema = new mongoose.Schema({
     paymentGatewayReference: {
         type: String,
         required: true,
+    }
+    ,
+    eventId: {
+        type: Types.ObjectId,
+        ref: 'Event',
+        required: true
     }
     ,
     email: {

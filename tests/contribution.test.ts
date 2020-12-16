@@ -4,7 +4,7 @@ dotenv.config({path: './test.env'})
 
 import supertest from "supertest";
 import app from "../src/app";
-import {setupDatabase, userOne, userTwo, userThree, tearDownDatabase} from "./fixtures/db";
+import {setupDatabase, userOne, userTwo, userThree, tearDownDatabase, eventOne} from "./fixtures/db";
 import {routeConfigs} from "../src/config/routing";
 import {ContributionModel} from "../src/models/ContributionModel";
 import {UserModel} from "../src/models/UserModel";
@@ -16,8 +16,8 @@ import {
     PAYSTACK_VERIFY,
     payStackAxios
 } from "../src/config/paystackConfig";
-import {TokenModel} from "../src/models/VerificationTokenModel";
 import {mongoDatabaseService} from "../src/services/userServices";
+import {PaymentTokenModel} from "../src/models/PaymentTokenModel";
 
 jest.mock("../src/services/accountVerification", () => ({
     ...jest.requireActual("../src/services/accountVerification"),
@@ -45,12 +45,14 @@ describe('Contribution Resource tests', () => {
     const sampleContribution = {
         contributorId: userOne._id,
         amount: 50,
-        paymentGatewayReference: "x2fdhpkj0q"
+        paymentGatewayReference: "x2fdhpkj0q",
+        eventId: eventOne._id
     }
 
     const sampleContributionDetails = {
         email: 'joseph.brown-pobee@ashesi.edu.gh',
-        amount: 50
+        amount: 50,
+        eventId: eventOne._id
     }
 
     describe('Contribution Creation tests', () => {
@@ -100,7 +102,7 @@ describe('Contribution Resource tests', () => {
                 .send(sampleContributionDetails)
 
             moxios.wait(async function () {
-                const token = await TokenModel.find({code: expectedResponseBody.data.reference})
+                const token = await PaymentTokenModel.find({paymentReference: expectedResponseBody.data.reference})
                 expect(token).toHaveLength(1)
                 done()
             })
@@ -136,11 +138,11 @@ describe('Contribution Resource tests', () => {
             }
 
             beforeEach(async () => {
-                await mongoDatabaseService.createVerificationToken(userOne._id, expectedResponse.data.reference)
+                await mongoDatabaseService.createVerificationToken(userOne._id, expectedResponse.data.reference, eventOne._id)
             })
 
             afterEach(async () => {
-                await TokenModel.deleteMany({})
+                await PaymentTokenModel.deleteMany({})
             })
 
             const makeContribution = () => {
