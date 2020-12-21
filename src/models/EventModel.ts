@@ -1,5 +1,6 @@
+//Setup middleware to update event total contribution
 import {mongoose} from '../config/mongoosePlugins';
-import { Document, model, Model} from "mongoose";
+import { Document, model, Model } from "mongoose";
 import mongoose_delete from "mongoose-delete";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
@@ -18,10 +19,10 @@ export interface IEventDocument extends IEvent, Document, mongoose_delete.SoftDe
 
 //static methods go here
 export interface IEventModel extends Model<IEventDocument>, mongoose_delete.SoftDeleteModel<IEventDocument> {
-
+    printTree()
 }
 
-const EventSchema = new mongoose.Schema({
+export const EventSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,

@@ -15,7 +15,7 @@ import {
     PAYSTACK_VERIFY,
     payStackAxios
 } from "../src/config/paystackConfig";
-import {mongoDatabaseService} from "../src/services/userServices";
+import {mongoDatabaseService} from "../src/services/mongoServices";
 import {PaymentTokenModel} from "../src/models/PaymentTokenModel";
 
 jest.mock("../src/services/accountVerification", () => ({

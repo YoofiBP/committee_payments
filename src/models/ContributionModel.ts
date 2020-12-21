@@ -1,14 +1,17 @@
+import {IEvent} from "./EventModel";
+
+require('./EventModel')
 import {mongoose} from '../config/mongoosePlugins'
 import { Document, Model, model, Types} from "mongoose";
-import {UserModel} from "./UserModel";
+import {IUser, UserModel} from "./UserModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
 export interface IContribution  {
-    contributorId: Types.ObjectId;
+    contributorId: Types.ObjectId | IUser;
     amount: number;
     paymentGatewayReference?: string;
     email?: string;
-    eventId: Types.ObjectId
+    eventId: Types.ObjectId | IEvent
 }
 
 export interface IContributionDocument extends IContribution, Document {
@@ -67,7 +70,6 @@ ContributionSchema.pre('save', async function (next) {
         return next(err)
     }
 })
-
 
 ContributionSchema.post('save', mongooseValidationErrorHandler())
 

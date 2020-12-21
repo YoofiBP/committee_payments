@@ -9,7 +9,7 @@ import {
     PAYSTACK_SUCCESS_STATUS
 } from "../config/paystackConfig";
 import {IUserDocument} from "../models/UserModel";
-import {mongoDatabaseService} from "../services/userServices";
+import {mongoDatabaseService} from "../services/mongoServices";
 
 class ContributionController extends CrudController implements CrudActions {
 

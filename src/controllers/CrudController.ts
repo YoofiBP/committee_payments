@@ -1,5 +1,5 @@
 import express from 'express';
-import {databaseService} from "../services/userServices";
+import {databaseService} from "../services/mongoServices";
 
 export interface CrudActions {
     index?(req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> | express.Response;

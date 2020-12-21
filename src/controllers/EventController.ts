@@ -1,12 +1,13 @@
+//TODO: Add ability to use query strings in get route
 import CrudController, {CrudActions} from "./CrudController";
 import express from "express";
-import {mongoDatabaseService} from "../services/userServices";
+import {mongoDatabaseService} from "../services/mongoServices";
 
 class EventController extends CrudController implements CrudActions {
     store = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
             const event = await this.dbService.saveEvent(req.body)
-            return res.status(200).send(event)
+            return res.status(201).send(event)
         } catch(err){
             next(err)
         }

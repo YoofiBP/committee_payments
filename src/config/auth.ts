@@ -2,7 +2,7 @@ import passport from "passport";
 import {Strategy as LocalStrategy} from 'passport-local';
 import {bcryptEncrypter, PasswordEncrypter} from "../services/passwordEncryption";
 import {ExtractJwt, Strategy as JwtStrategy} from 'passport-jwt'
-import {databaseService, mongoDatabaseService} from "../services/userServices";
+import {databaseService, mongoDatabaseService} from "../services/mongoServices";
 
 const LOGIN_FAIL_MESSAGE = 'Unable to Login';
 

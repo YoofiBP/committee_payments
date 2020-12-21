@@ -47,7 +47,7 @@ describe('Event Resource Tests', () => {
 
             const response = await createEvent(sampleEvent)
 
-            expect(response.status).toEqual(200)
+            expect(response.status).toEqual(201)
             expect(response.body).toMatchObject({
                 name: sampleEvent.name,
                 venue: sampleEvent.venue
