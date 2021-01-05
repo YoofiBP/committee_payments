@@ -21,7 +21,7 @@ export const eventOne = {
 
 const sampleContribution = {
     _id: new mongoose.Types.ObjectId(),
-    contributorId: userIdOne,
+    contributorInfo: userIdOne,
     amount: 50,
     paymentGatewayReference: "x2fdhpkj0q",
     eventId: eventIdOne

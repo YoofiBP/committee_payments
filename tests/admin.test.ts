@@ -29,7 +29,7 @@ describe('Admin Resource tests', () => {
     const getUsersRoute = `${routeConfigs.admin.baseUrl}${routeConfigs.admin.getAllUsers}`
 
     const sampleContribution = {
-        contributorId: userOne._id,
+        contributorInfo: userOne._id,
         amount: 50,
         paymentGatewayReference: "x2fdhpkj0q",
         eventId: new mongoose.Types.ObjectId()

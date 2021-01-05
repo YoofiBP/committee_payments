@@ -1,15 +1,24 @@
 //Setup middleware to update event total contribution
 import {mongoose} from '../config/mongoosePlugins';
-import { Document, model, Model } from "mongoose";
+import {Document, model, Model, Types} from "mongoose";
 import mongoose_delete from "mongoose-delete";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
+interface EventContributionReference {
+    contributionId: Types.ObjectId | string;
+    amount: number;
+    contributorInfo: {
+        contributorId: Types.ObjectId | string,
+        contributorName: string;
+    }
+}
 export interface IEvent {
     name: string;
     venue: string;
     dateTime: Date,
     flyer?: Buffer,
-    totalContribution?: number
+    totalContribution?: number,
+    contributions?: Array<EventContributionReference>
 }
 
 //instance methods here
@@ -44,6 +53,25 @@ export const EventSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         protected: true
+    },
+    contributions: {
+      type: [{
+          contributionId: {
+              type: Types.ObjectId,
+              ref: 'Contribution',
+              required: true,
+          },
+          amount: Number,
+          contributorInfo: {
+              contributorId: {
+                  type: Types.ObjectId,
+                  ref: 'User',
+                  required: true,
+              },
+              contributorName: String
+          }
+      }],
+      protected: true,
     },
     createdAt: {
         type: Date,

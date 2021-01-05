@@ -47,12 +47,18 @@ class ContributionController extends CrudController implements CrudActions {
         try {
             const {data: {data: {status, amount, reference}}} = req;
             if (status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
-                const {userId:contributorId, eventId} = await this.dbService.getUserAndEventIdFromPaymentToken(reference)
+                const {eventInfo: {_id:eventId, name: eventName}, userInfo: {_id: contributorId, name: contributorName}} = await this.dbService.getUserAndEventIdFromPaymentToken(reference)
                 await this.dbService.saveContribution({
-                    contributorId ,
+                    contributorInfo: {
+                        contributorId,
+                        contributorName
+                    } ,
                     amount: +amount / 100,
                     paymentGatewayReference: reference,
-                    eventId
+                    eventInfo: {
+                        eventId,
+                        eventName
+                    }
                 })
                 return res.redirect(301, process.env.BASE_URL)
             } else {

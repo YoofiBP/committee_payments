@@ -1,17 +1,24 @@
-import {IEvent} from "./EventModel";
+import {EventModel, IEvent} from "./EventModel";
 
 require('./EventModel')
 import {mongoose} from '../config/mongoosePlugins'
-import { Document, Model, model, Types} from "mongoose";
+import {Document, Model, model, Types} from "mongoose";
 import {IUser, UserModel} from "./UserModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
+import mongooseAutoPopulate from 'mongoose-autopopulate';
 
-export interface IContribution  {
-    contributorId: Types.ObjectId | IUser;
+export interface IContribution {
+    contributorInfo: {
+        contributorId: Types.ObjectId,
+        contributorName: string
+    };
     amount: number;
     paymentGatewayReference?: string;
     email?: string;
-    eventId: Types.ObjectId | IEvent
+    eventInfo: {
+        eventId: Types.ObjectId,
+        eventName: string
+    }
 }
 
 export interface IContributionDocument extends IContribution, Document {
@@ -22,25 +29,42 @@ export interface IContributionModel extends Model<IContributionDocument> {
     printTree()
 }
 
+//TODO: Include contributor and event name when storing documents
 export const ContributionSchema = new mongoose.Schema({
-    contributorId: {
-        type: Types.ObjectId,
-        ref: 'User',
-        required: true
+    contributorInfo: {
+        contributorId: {
+            type: Types.ObjectId,
+            ref: 'User',
+            required: true,
+            autopopulate: true
+        },
+        contributorName: {
+            type: String,
+            required: true
+        }
     },
     amount: {
         type: Number,
         required: true
     },
+    //TODO: Create index for paymentGatewayReference
     paymentGatewayReference: {
         type: String,
         required: true,
     }
     ,
-    eventId: {
-        type: Types.ObjectId,
-        ref: 'Event',
-        required: true
+    eventInfo: {
+        eventId: {
+            type: Types.ObjectId,
+            ref: 'Event',
+            required: true,
+            autopopulate: true
+        },
+        eventName: {
+            type: String,
+            required: true
+        }
+
     }
     ,
     email: {
@@ -61,10 +85,38 @@ export const ContributionSchema = new mongoose.Schema({
 
 
 ContributionSchema.pre('save', async function (next) {
-    try{
-        const contribution = this as IContributionDocument
-        const {amount, contributorId} = contribution;
-        await UserModel.findByIdAndUpdate(contributorId, {$inc: {totalContribution: amount}, $push: {contributions: contribution}});
+    try {
+        const {
+            amount,
+            contributorInfo: {contributorId, contributorName},
+            _id: contributionId,
+            eventInfo: {eventId, eventName}
+        } = this as IContributionDocument;
+        const contribution = {
+            contributionId,
+            amount,
+            eventInfo: {
+                eventId,
+                eventName
+            }
+        }
+        await UserModel.findByIdAndUpdate(contributorId, {
+            $inc: {totalContribution: amount},
+            $push: {contributions: contribution}
+        });
+        await EventModel.findByIdAndUpdate(eventId, {
+            $inc: {totalContribution: amount},
+            $push: {
+                contributions: {
+                    contributionId,
+                    amount,
+                    contributorInfo: {
+                        contributorId,
+                        contributorName
+                    }
+                }
+            }
+        })
         return next();
     } catch (err) {
         return next(err)
@@ -73,5 +125,7 @@ ContributionSchema.pre('save', async function (next) {
 
 ContributionSchema.post('save', mongooseValidationErrorHandler())
 
-export const ContributionModel:IContributionModel = model<IContributionDocument,IContributionModel>('Contribution',ContributionSchema)
+ContributionSchema.plugin(mongooseAutoPopulate);
+
+export const ContributionModel: IContributionModel = model<IContributionDocument, IContributionModel>('Contribution', ContributionSchema)
 

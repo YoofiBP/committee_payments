@@ -16,6 +16,7 @@ import adminRouter from "./routes/AdminRouter";
 import {removeUnfillable} from "./config/globalMiddleware";
 import {authStrategies, configurePassport} from "./config/auth";
 import eventController from "./controllers/EventController";
+import reportController from "./controllers/ReportController";
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(routeConfigs.contributions.baseUrl,contributionRouter)
 app.use(routeConfigs.admin.baseUrl, adminRouter)
 app.get(routeConfigs.events.baseUrl, configurePassport(authStrategies.jwt), eventController.index)
+app.get('/report', reportController.generateReport)
 
 app.use(appErrorHandler);
 app.all('*', (req, res) => {

@@ -1,14 +1,21 @@
 import {mongoose} from '../config/mongoosePlugins'
-import {Schema, Document, model, Model} from 'mongoose';
+import {Schema, Document, model, Model, Types} from 'mongoose';
 import validator from "validator";
 import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
 import jwt from 'jsonwebtoken';
 import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
-import {ContributionSchema, IContributionDocument} from "./ContributionModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 
+interface UserContributionReference {
+    contributionId: Types.ObjectId | string;
+    amount: number;
+    eventInfo: {
+        eventId: Types.ObjectId | string,
+        eventName: string;
+    }
+}
 
 export interface IUser {
     name:string;
@@ -19,7 +26,7 @@ export interface IUser {
     isVerified?: boolean;
     role?: string;
     totalContribution?: number
-    contributions?: Array<IContributionDocument>
+    contributions?: Array<UserContributionReference>
     createdAt?: Date
     updatedAt?: Date
 }
@@ -90,7 +97,22 @@ const UserSchema:Schema = new mongoose.Schema({
         protected: true
     },
     contributions:{
-        type: [ContributionSchema],
+        type: [{
+            contributionId: {
+                type: Types.ObjectId,
+                ref: 'Contribution',
+                required: true,
+            },
+            amount: Number,
+            eventInfo: {
+                eventId: {
+                    type: Types.ObjectId,
+                    ref: 'Event',
+                    required: true,
+                },
+                eventName: String
+            }
+        }],
         protected: true
     }
     ,

@@ -8,7 +8,7 @@ import {
 import {IUser, IUserDocument, UserModel} from "../models/UserModel";
 import {ContributionModel, IContribution} from "../models/ContributionModel";
 import {PaymentTokenModel} from "../models/PaymentTokenModel";
-import {EventModel} from "../models/EventModel";
+import {EventModel, IEventDocument} from "../models/EventModel";
 
 export interface databaseService {
     findTokenAndVerifyUser(tokenCode: string);
@@ -29,7 +29,7 @@ export interface databaseService {
 
     createVerificationToken(userId, paymentReference, eventId);
 
-    getUserAndEventIdFromPaymentToken(paymentReference: string): {userId: string; eventId:string} | Promise<{userId: string; eventId:string}>
+    getUserAndEventIdFromPaymentToken(paymentReference: string): {userInfo: IUserDocument; eventInfo:IEventDocument} | Promise<{userInfo: IUserDocument; eventInfo:IEventDocument}>
 
     saveEvent(eventData:{})
 
@@ -114,9 +114,9 @@ class MongoDatabaseService implements databaseService {
         if (!token) {
             throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
         }
-        const userId = token.userId.toString();
-        const eventId = token.eventId.toString();
-        return {userId, eventId};
+        const userInfo = await this.findUserById(token.userId.toString());
+        const eventInfo = await this.findEventById(token.eventId.toString());
+        return {userInfo, eventInfo};
     }
 
     saveEvent(eventData: {}) {

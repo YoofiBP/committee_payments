@@ -42,7 +42,7 @@ describe('Contribution Resource tests', () => {
     const verifyContributionRoute = `${contributionResourceRoute}${routeConfigs.contributions.verifyContribution}`
 
     const sampleContribution = {
-        contributorId: userOne._id,
+        contributorInfo: userOne._id,
         amount: 50,
         paymentGatewayReference: "x2fdhpkj0q",
         eventId: eventOne._id
@@ -207,7 +207,7 @@ describe('Contribution Resource tests', () => {
             await supertest(app)
                 .post(makeContributionRoute)
                 .send({
-                    contributorId: userOne._id,
+                    contributorInfo: userOne._id,
                     amount: 50,
                 })
                 .expect(401)
@@ -218,7 +218,7 @@ describe('Contribution Resource tests', () => {
                 .post(makeContributionRoute)
                 .set("Authorization", `Bearer ${userTwo.tokens[0].token}`)
                 .send({
-                    contributorId: userTwo._id,
+                    contributorInfo: userTwo._id,
                     amount: 50,
                 })
                 .expect(401)
