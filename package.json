@@ -83,7 +83,7 @@
     "express": "^4.17.1",
     "faker": "^5.1.0",
     "follow-redirects": "^1.13.0",
-    "helmet": "^4.2.0",
+    "helmet": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.3",
     "mongoose-autopopulate": "^0.12.3",
