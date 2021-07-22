@@ -1,0 +1,11 @@
+name: Yoofi Sample Action
+on: [push]
+jobs:
+  Learn-Github-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This action is written from scratch"
+  Create-Second-Job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is a second job"
