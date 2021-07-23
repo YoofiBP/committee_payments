@@ -1,7 +1,7 @@
 import CrudController, {CrudActions} from "./CrudController";
 import express from 'express';
 import {IUserDocument} from "../models/UserModel";
-import ac, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
+import accessControlController, {ACCESS_CONTROL_ERROR_MESSAGE, adminRoles} from '../config/accessControl'
 import {AuthError} from "../services/errorHandling";
 import {mongoDatabaseService} from "../services/mongoServices";
 
@@ -77,7 +77,7 @@ class UserController extends CrudController implements CrudActions{
             if(adminRoles.includes(req.user.role)){
                 return next()
             }
-            const permission = ac.can(req.user.role)[action](resource)
+            const permission = accessControlController.can(req.user.role)[action](resource)
             if(!permission.granted){ return next(new AuthError(ACCESS_CONTROL_ERROR_MESSAGE))}
             if(req.params.id){
                 if(req.user._id.toString() !== req.params.id){

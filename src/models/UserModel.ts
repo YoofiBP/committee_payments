@@ -3,7 +3,7 @@ import {Schema, Document, model, Model, Types} from 'mongoose';
 import validator from "validator";
 import {bcryptEncrypter, encryptPassword} from "../services/passwordEncryption";
 import jwt from 'jsonwebtoken';
-import {sendGridEmailVerification, sendVerification} from "../services/accountVerification";
+import {sendGridEmailVerification, sendVerificationInProduction} from "../services/accountVerification";
 import mongoose_delete from 'mongoose-delete'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
@@ -139,7 +139,7 @@ const UserSchema:Schema = new mongoose.Schema({
 
 UserSchema.pre('save',  encryptPassword(bcryptEncrypter))
 
-UserSchema.pre('save', sendVerification(sendGridEmailVerification))
+UserSchema.pre('save', sendVerificationInProduction(sendGridEmailVerification))
 
 UserSchema.post('save',  mongooseValidationErrorHandler());
 
