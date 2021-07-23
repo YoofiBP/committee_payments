@@ -1,22 +1,22 @@
 import {AccessControl} from 'accesscontrol'
 
-const ac = new AccessControl();
+const accessControlController = new AccessControl();
 
-ac.grant('basic')
+accessControlController.grant('basic')
     .updateOwn('profile')
     .deleteOwn('profile')
     .createOwn('profile')
 
-ac.grant('admin').extend('basic')
+accessControlController.grant('admin').extend('basic')
 
-ac.grant('admin')
+accessControlController.grant('admin')
     .readAny('profile')
     .updateAny('profile')
 
-ac.grant('super').extend('admin')
+accessControlController.grant('super').extend('admin')
 
 export const adminRoles = ['admin']
 
 export const ACCESS_CONTROL_ERROR_MESSAGE = 'You dont have permission to perform this action';
 
-export default ac;
+export default accessControlController;

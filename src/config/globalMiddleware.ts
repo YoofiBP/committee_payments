@@ -7,7 +7,7 @@ const routeToModel = {
     [routeConfigs.contributions.baseUrl]: ContributionModel
 }
 
-export const removeUnfillable = (req, res, next) => {
+export const globalRequestBodyTrimmer = (req, res, next) => {
     const resourcePath = `/${req.originalUrl.split('/')[1]}`
     if(!routeToModel[resourcePath]){
         return next();

@@ -5,7 +5,7 @@ dotenv.config();
 import {MailService} from '@sendgrid/mail'
 import {IUserDocument} from "../models/UserModel";
 import {ITokenDocument, TokenModel} from "../models/VerificationTokenModel";
-import {sendGridEmailConfig} from "../config/email";
+import {generateSendGridEmailConfig} from "../config/email";
 
 interface VerifiesUsers {
     sendVerification(user, token);
@@ -26,21 +26,26 @@ export class SendGridEmailVerification implements VerifiesUsers {
     }
 
     createVerificationMessage(recipient, token) {
-        return sendGridEmailConfig(recipient, token)
+        return generateSendGridEmailConfig(recipient, token)
     }
 }
 
 export const sendGridEmailVerification = new SendGridEmailVerification();
 
-export const sendVerification = (verifier: VerifiesUsers) => {
+export const sendVerificationInProduction = (verifier: VerifiesUsers) => {
     return async function () {
-        const user = this as IUserDocument;
-        if(user.isNew){
-            const verificationToken: ITokenDocument = await new TokenModel({
-                userId: user._id
-            }).save();
-            verifier.sendVerification(user, verificationToken.code)
+        if(process.env.NODE_ENV === 'production'){
+            await sendVerificationIfUserIsNew(verifier);
         }
+    }
+}
 
+async function sendVerificationIfUserIsNew(verifier: VerifiesUsers)  {
+    const user = this as IUserDocument;
+    if(user.isNew){
+        const verificationToken: ITokenDocument = await new TokenModel({
+            userId: user._id
+        }).save();
+        verifier.sendVerification(user, verificationToken.code)
     }
 }

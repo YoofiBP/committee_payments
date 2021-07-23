@@ -208,7 +208,7 @@ const getHTMLBody = (link) => {
 </html>`
 }
 
-export const sendGridEmailConfig = (recipient:string, token:string) => {
+export const generateSendGridEmailConfig = (recipient:string, token:string) => {
     return {
         to: recipient,
         from: "joseph.brown-pobee@ashesi.edu.gh",

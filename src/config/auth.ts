@@ -6,6 +6,17 @@ import {databaseService, mongoDatabaseService} from "../services/mongoServices";
 
 const LOGIN_FAIL_MESSAGE = 'Unable to Login';
 
+export enum authStrategies  {
+    local = 'local',
+    jwt = 'jwt'
+}
+
+const jwtOptions = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.SECRET,
+    passReqToCallback: true
+}
+
 const localStrategyVerification = (dbService:databaseService, passwordDecrypter: PasswordEncrypter) => {
     return async (req,email, password, done) => {
         try{
@@ -26,7 +37,7 @@ const localStrategyVerification = (dbService:databaseService, passwordDecrypter:
     }
 }
 
-const JwtStrategyVerification = (dbService: databaseService) => {
+const jwtStrategyVerification = (dbService: databaseService) => {
     return async (req, payload, done) => {
         const token = req.header('Authorization').replace("Bearer ", "")
         const [user] = await dbService.findUserByQuery({_id:payload.id, "tokens.token": token})
@@ -39,20 +50,9 @@ const JwtStrategyVerification = (dbService: databaseService) => {
     }
 }
 
-const jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.SECRET,
-    passReqToCallback: true
-}
-
 passport.use(new LocalStrategy({usernameField: 'email', session: false, passReqToCallback:true}, localStrategyVerification(mongoDatabaseService, bcryptEncrypter)))
 
-passport.use(new JwtStrategy(jwtOptions, JwtStrategyVerification(mongoDatabaseService)))
-
-export enum authStrategies  {
-        local = 'local',
-        jwt = 'jwt'
-}
+passport.use(new JwtStrategy(jwtOptions, jwtStrategyVerification(mongoDatabaseService)))
 
 export const configurePassport = (strategy:authStrategies) => {
     return passport.authenticate(strategy, {session:false})

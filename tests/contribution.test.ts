@@ -13,7 +13,7 @@ import {
     PAYSTACK_INTIALIZE,
     PAYSTACK_SUCCESS_STATUS,
     PAYSTACK_VERIFY,
-    payStackAxios
+    payStackAxiosClient
 } from "../src/config/paystackConfig";
 import {mongoDatabaseService} from "../src/services/mongoServices";
 import {PaymentTokenModel} from "../src/models/PaymentTokenModel";
@@ -29,12 +29,12 @@ describe('Contribution Resource tests', () => {
 
     beforeEach(async () => {
         await setupDatabase();
-        moxios.install(payStackAxios);
+        moxios.install(payStackAxiosClient);
     })
 
     afterEach(async () => {
         await tearDownDatabase();
-        moxios.uninstall(payStackAxios)
+        moxios.uninstall(payStackAxiosClient)
     })
 
     const contributionResourceRoute = `${routeConfigs.contributions.baseUrl}`
