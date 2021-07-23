@@ -13,7 +13,7 @@ import passport from "passport"
 import {routeConfigs} from "./config/routing";
 import contributionRouter from "./routes/ContributionRouter";
 import adminRouter from "./routes/AdminRouter";
-import {removeUnfillable} from "./config/globalMiddleware";
+import {globalRequestBodyTrimmer} from "./config/globalMiddleware";
 import {authStrategies, configurePassport} from "./config/auth";
 import eventController from "./controllers/EventController";
 import reportController from "./controllers/ReportController";
@@ -41,7 +41,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(passport.initialize());
 
-app.use(removeUnfillable)
+app.use(globalRequestBodyTrimmer)
 app.use(routeConfigs.users.baseUrl, userRouter)
 app.use(routeConfigs.contributions.baseUrl,contributionRouter)
 app.use(routeConfigs.admin.baseUrl, adminRouter)

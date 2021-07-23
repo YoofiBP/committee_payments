@@ -5,7 +5,7 @@ import express from "express";
 import {
     PAYSTACK_INTIALIZE,
     PAYSTACK_VERIFY,
-    payStackAxios,
+    payStackAxiosClient,
     PAYSTACK_SUCCESS_STATUS
 } from "../config/paystackConfig";
 import {IUserDocument} from "../models/UserModel";
@@ -16,7 +16,7 @@ class ContributionController extends CrudController implements CrudActions {
     payWithPaystack = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         const {email, amount, eventId} = req.body
         try {
-            const paystackResponse = await payStackAxios.post(PAYSTACK_INTIALIZE, {
+            const paystackResponse = await payStackAxiosClient.post(PAYSTACK_INTIALIZE, {
                 amount,
                 email
             })
@@ -34,7 +34,7 @@ class ContributionController extends CrudController implements CrudActions {
         } = req.query;
 
         try {
-            const response = await payStackAxios.get(`${PAYSTACK_VERIFY}/${reference_code}`)
+            const response = await payStackAxiosClient.get(`${PAYSTACK_VERIFY}/${reference_code}`)
             req.data = response.data;
             next()
         } catch (err) {
