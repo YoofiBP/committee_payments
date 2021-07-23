@@ -68,7 +68,7 @@
     "@types/mongoose-delete": "^0.5.5",
     "@types/mongoose-unique-validator": "^1.0.4",
     "@types/passport": "^1.0.7",
-    "@types/passport-jwt": "^3.0.3",
+    "@types/passport-jwt": "^3.0.6",
     "@types/passport-local": "^1.0.33",
     "@types/validator": "^13.6.3",
     "accesscontrol": "^2.2.1",
