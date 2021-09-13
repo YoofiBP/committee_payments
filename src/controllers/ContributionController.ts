@@ -72,7 +72,7 @@ class ContributionController extends CrudController implements CrudActions {
     index = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<express.Response> => {
         try {
             const contributions = await this.dbService.findAllContributions()
-            return res.status(201).send(contributions)
+            return res.status(200).send(contributions)
         } catch (err) {
             next(err)
         }
