@@ -1,0 +1,1 @@
+Backend for School crowdfunding application
