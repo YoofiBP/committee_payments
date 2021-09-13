@@ -40,6 +40,8 @@ export interface databaseService {
     findAllEvents();
 }
 
+//TODO: Create Repository for each model
+
 class MongoDatabaseService implements databaseService {
 
     async findTokenAndVerifyUser(tokenCode: string) {
