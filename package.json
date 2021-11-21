@@ -65,7 +65,7 @@
     "@types/ioredis": "^4.28.1",
     "@types/jsonwebtoken": "^8.5.4",
     "@types/mongoose": "^5.11.97",
-    "@types/mongoose-autopopulate": "^0.10.1",
+    "@types/mongoose-autopopulate": "^0.10.2",
     "@types/mongoose-delete": "^0.5.5",
     "@types/mongoose-unique-validator": "^1.0.4",
     "@types/passport": "^1.0.7",
