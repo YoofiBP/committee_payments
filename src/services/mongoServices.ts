@@ -1,7 +1,6 @@
 import {TokenModel} from "../models/VerificationTokenModel";
 import {
     AuthError,
-    DUPLICATE_CONTRIBUTION_ERROR_MESSAGE,
     DuplicateContributionError,
     TOKEN_NOT_FOUND_ERROR_MESSAGE
 } from "./errorHandling";
@@ -38,6 +37,8 @@ export interface databaseService {
     findEventByIdAndUpdate(eventId: string, data:{})
 
     findAllEvents();
+
+    findContributionByReference(reference: string)
 }
 
 //TODO: Create Repository for each model
@@ -59,6 +60,12 @@ class MongoDatabaseService implements databaseService {
         } catch (err) {
             throw err
         }
+    }
+
+    async findContributionByReference(reference: string){
+        return ContributionModel.findOne({
+            paymentGatewayReference: reference
+        })
     }
 
     saveUser(userData: IUser) {
@@ -92,7 +99,7 @@ class MongoDatabaseService implements databaseService {
         //check if reference is present before saving
         const contributionInDatabase = await ContributionModel.findOne({paymentGatewayReference: contributionData.paymentGatewayReference})
         if (contributionInDatabase) {
-            throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
+            throw new DuplicateContributionError()
         }
         const contribution = new ContributionModel(contributionData);
         return contribution.save();
@@ -114,7 +121,7 @@ class MongoDatabaseService implements databaseService {
     async getUserAndEventIdFromPaymentToken(paymentReference: string) {
         const token = await PaymentTokenModel.findOne({paymentReference})
         if (!token) {
-            throw new DuplicateContributionError(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE)
+            throw new DuplicateContributionError()
         }
         const userInfo = await this.findUserById(token.userId.toString());
         const eventInfo = await this.findEventById(token.eventId.toString());

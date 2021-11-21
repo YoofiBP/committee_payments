@@ -5,11 +5,10 @@ import {routeConfigs} from "../config/routing";
 
 const contributionRouter: Router = Router();
 
-
-contributionRouter.get(routeConfigs.contributions.verifyContribution, contributionController.verifyPayment, contributionController.store)
+contributionRouter.post(routeConfigs.contributions.verifyContribution, contributionController.verifyPayment, contributionController.store)
 
 contributionRouter.use(configurePassport(authStrategies.jwt))
 
-contributionRouter.post(routeConfigs.contributions.makeContribution, contributionController.payWithPaystack)
+contributionRouter.post(routeConfigs.contributions.makeContribution, contributionController.createPaymentReference);
 
 export default contributionRouter;

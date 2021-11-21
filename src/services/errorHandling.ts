@@ -28,13 +28,13 @@ export class AuthError extends CustomError {
 }
 
 export class DuplicateContributionError extends CustomError {
-    constructor(message:string) {
-        super(message);
+    constructor() {
+        super(DUPLICATE_CONTRIBUTION_ERROR_MESSAGE);
         this.statusCode = 400
     }
 }
 
-export const appErrorHandler = (err, req, res, next) => {
+export const appErrorHandler = (err, req, res, _) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
     err.message = err.message || 'A server error occurred'

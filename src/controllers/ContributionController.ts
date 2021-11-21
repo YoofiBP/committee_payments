@@ -3,38 +3,37 @@
 import CrudController, {CrudActions} from "./CrudController";
 import express from "express";
 import {
-    PAYSTACK_INTIALIZE,
     PAYSTACK_VERIFY,
     payStackAxiosClient,
     PAYSTACK_SUCCESS_STATUS
 } from "../config/paystackConfig";
-import {IUserDocument} from "../models/UserModel";
 import {mongoDatabaseService} from "../services/mongoServices";
+import {redisStore} from "../services/imMemoryDatabase";
+import { v4 as uuidv4 } from 'uuid';
+import {DuplicateContributionError} from "../services/errorHandling";
 
 class ContributionController extends CrudController implements CrudActions {
 
-    payWithPaystack = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const {email, amount, eventId} = req.body
-        try {
-            const paystackResponse = await payStackAxiosClient.post(PAYSTACK_INTIALIZE, {
-                amount,
-                email
-            })
-            const {authorization_url, reference} = paystackResponse.data.data;
-            await this.dbService.createVerificationToken((req.user as IUserDocument)._id, reference, eventId)
-            res.status(200).send({authorization_url})
-        } catch (err) {
-            next(err)
+    createPaymentReference = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const reference = uuidv4();
+        const {eventID, contributorID} = req.body;
+
+        const response = await redisStore.store(reference, JSON.stringify({
+            eventID,
+            contributorID
+        }));
+        if(response){
+            res.status(200).send({reference});
+        }else {
+            next(new Error('Payment Reference could not be created'));
         }
+
     }
 
     verifyPayment = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const {
-            reference: reference_code
-        } = req.query;
-
+        const {reference} = req.body;
         try {
-            const response = await payStackAxiosClient.get(`${PAYSTACK_VERIFY}/${reference_code}`)
+            const response = await payStackAxiosClient.get(`${PAYSTACK_VERIFY}/${reference}`)
             req.data = response.data;
             next()
         } catch (err) {
@@ -44,15 +43,31 @@ class ContributionController extends CrudController implements CrudActions {
     }
 
     store = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        try {
-            const {data: {data: {status, amount, reference}}} = req;
-            if (status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
-                const {eventInfo: {_id:eventId, name: eventName}, userInfo: {_id: contributorId, name: contributorName}} = await this.dbService.getUserAndEventIdFromPaymentToken(reference)
+        const ensureNewContribution = async (reference) => {
+            const existingContribution = await this.dbService.findContributionByReference(reference);
+            if(existingContribution){
+                throw new DuplicateContributionError();
+            }
+        }
+
+        const getContributionDataFromCache = async (reference) => {
+            const data = await redisStore.retrieve(reference);
+            const contributionInfo = JSON.parse(data);
+            const {_id: eventId, name: eventName} = await this.dbService.findEventById(contributionInfo.eventID);
+            const {_id: contributorId, name: contributorName} = await this.dbService.findUserById(contributionInfo.contributorID);
+            return {eventId, eventName, contributorId, contributorName};
+        }
+
+        const storeContributionData = async () => {
+            try {
+                const {data: { data: {reference, amount}}} = req;
+                await ensureNewContribution(reference);
+                const {contributorId, contributorName, eventId, eventName} = await getContributionDataFromCache(reference)
                 await this.dbService.saveContribution({
                     contributorInfo: {
                         contributorId,
                         contributorName
-                    } ,
+                    },
                     amount: +amount / 100,
                     paymentGatewayReference: reference,
                     eventInfo: {
@@ -60,11 +75,22 @@ class ContributionController extends CrudController implements CrudActions {
                         eventName
                     }
                 })
-                return res.redirect(301, process.env.BASE_URL)
+            } catch (e) {
+                throw e
+            }
+        }
+
+        try {
+            if (req.data.data.status.toLocaleLowerCase() === PAYSTACK_SUCCESS_STATUS) {
+                await storeContributionData();
+                return res.status(200).send({
+                    message: "verified"
+                });
             } else {
-                res.status(500).send("Something went wrong. Transaction failed")
+                return res.status(500).send("Something went wrong. Transaction failed")
             }
         } catch (err) {
+            console.log(err)
             next(err)
         }
     }
