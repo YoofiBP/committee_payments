@@ -1,9 +1,9 @@
-import {EventModel, IEvent} from "./EventModel";
+import {EventModel} from "./EventModel";
 
 require('./EventModel')
 import {mongoose} from '../config/mongoosePlugins'
 import {Document, Model, model, Types} from "mongoose";
-import {IUser, UserModel} from "./UserModel";
+import {UserModel} from "./UserModel";
 import {mongooseValidationErrorHandler} from "../services/errorHandling";
 import mongooseAutoPopulate from 'mongoose-autopopulate';
 

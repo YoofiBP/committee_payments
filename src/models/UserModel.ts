@@ -32,8 +32,8 @@ export interface IUser {
 }
 
 //instance methods added here
-export interface IUserDocument extends IUser, Document, mongoose_delete.SoftDeleteDocument {
-    generateAuthToken: () => string;
+export interface IUserDocument extends IUser, Omit<Document, 'delete'>, mongoose_delete.SoftDeleteDocument {
+    generateAuthToken: () => Promise<string>;
 }
 
 //static methods go here
@@ -158,7 +158,7 @@ UserSchema.methods.generateAuthToken = async function() {
 
 
 UserSchema.methods.toJSON = function () {
-    const user = this.toObject();
+    const user = this.toObject() as IUser;
     delete user.password;
     delete user.isVerified;
     delete user.role;

@@ -22,7 +22,7 @@ export interface IEvent {
 }
 
 //instance methods here
-export interface IEventDocument extends IEvent, Document, mongoose_delete.SoftDeleteDocument {
+export interface IEventDocument extends IEvent, Omit<Document, 'delete'>, mongoose_delete.SoftDeleteDocument {
 
 }
 
