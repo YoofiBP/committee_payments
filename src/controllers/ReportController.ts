@@ -1,10 +1,9 @@
-import CrudController, {CrudActions} from "./CrudController";
+import CrudController from "./CrudController";
 import express from "express";
 import {mongoDatabaseService} from "../services/mongoServices";
-import {Model} from "mongoose";
-import {IUserDocument, IUserModel, UserModel} from "../models/UserModel";
-import {ContributionModel, IContributionDocument, IContributionModel} from "../models/ContributionModel";
-import {EventModel, IEventDocument, IEventModel} from "../models/EventModel";
+import {IUserModel, UserModel} from "../models/UserModel";
+import {ContributionModel, IContributionModel} from "../models/ContributionModel";
+import {EventModel, IEventModel} from "../models/EventModel";
 import mongoose from "mongoose";
 
 class ReportController extends CrudController {
@@ -15,10 +14,8 @@ class ReportController extends CrudController {
 
     async genReport(modelName: string, fields: string[], filter: object) {
         try {
-            console.log(mongoose.modelNames());
-            const model = this.getModel(modelName)
+            const model = this.getModel(modelName);
             const data = await model.find(filter).select(fields);
-            console.log(data)
         } catch(err){
             console.log(err)
         }
@@ -30,17 +27,14 @@ class ReportController extends CrudController {
         }
     }
 
-    getModel(modelName: string):Model<IUserDocument | IContributionDocument | IEventDocument>{
+    getModel(modelName: string): IUserModel | IContributionModel | IEventModel{
         switch (modelName){
             case 'User':
                 return UserModel;
-                break;
             case 'Contribution':
                 return ContributionModel;
-                break;
             case 'Event':
                 return EventModel;
-                break;
         }
     }
 
